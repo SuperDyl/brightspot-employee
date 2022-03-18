@@ -7,4 +7,3 @@ from knowyourprofessor import KnowYourProfessorBuilder
 
 if __name__ == "__main__":
     builder = KnowYourProfessorBuilder()
-    
