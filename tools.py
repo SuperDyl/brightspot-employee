@@ -23,18 +23,18 @@ def print_bad_formatted_rooms():
     # print(*(f'{n.room}, {o.room}' for o, n in zip(old, professors)), sep='\n')
 
 
-def add_slide(presentation: Presentation, prof_name):
-    slide = presentation.slides.add_slide(BLANK_LAYOUT)
-    textbox_height = Inches(1.58)
-    name_textbox = slide.shapes.add_textbox(left=0, top=presentation.slide_height - textbox_height,
-                                            width=presentation.slide_width, height=textbox_height)
-    frame = name_textbox.text_frame
-    frame.text = prof_name
-    frame.auto_size = MSO_AUTO_SIZE.NONE
-    frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
-    font = frame.paragraphs[0].font
-    font.size = Pt(88)
-    font.color.rgb = RGBColor(255, 0, 0)
+# def add_slide(presentation: Presentation, prof_name):
+#     slide = presentation.slides.add_slide(BLANK_LAYOUT)
+#     textbox_height = Inches(1.58)
+#     name_textbox = slide.shapes.add_textbox(left=0, top=presentation.slide_height - textbox_height,
+#                                             width=presentation.slide_width, height=textbox_height)
+#     frame = name_textbox.text_frame
+#     frame.text = prof_name
+#     frame.auto_size = MSO_AUTO_SIZE.NONE
+#     frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
+#     font = frame.paragraphs[0].font
+#     font.size = Pt(88)
+#     font.color.rgb = RGBColor(255, 0, 0)
 
 
 def pull_professor_data(url="https://religion.byu.edu/directory"):

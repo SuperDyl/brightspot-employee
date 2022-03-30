@@ -1,4 +1,3 @@
-#!/usr/bin/python3.6
 """
 A flashcards PowerPoint builder
 """
