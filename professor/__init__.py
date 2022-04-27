@@ -1,15 +1,27 @@
-from room2 import Room
-from tools import remove_prefix
+"""
+Stores data about Professors in BYU's Religious Education
+
+Includes methods to pull data from online and store/pull from csv files
+"""
+
+from .room import Room
+from .tools import remove_prefix, tag_iterator
 
 from pandas import DataFrame, read_csv
 
 from contextlib import suppress
 
+RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
 NAME_SUFFIXES = ('jr.', 'iii', 'sr.')
 NON_EXISTENT = ''
 
 
 class Professor:
+    """
+    Stores data for a professor in BYU's Religious Education
+
+    """
+
     def __init__(self, first_name: str, last_name: str, room: Room, page_url: str,
                  telephone: str, department: str, job_title: str):
         self.first_name = first_name
@@ -63,6 +75,10 @@ class Professor:
     def from_csv(file_path) -> list:
         dataframe = read_csv(file_path, keep_default_na=False)
         return [Professor.from_dict(row) for row in dataframe.itertuples()]
+
+    @staticmethod
+    def from_website(url: str = RELIGION_DIR_URL) -> list:
+        return [Professor.from_html_tag(tag) for tag in tag_iterator(url)]
 
 
 def process_job_title(tag):

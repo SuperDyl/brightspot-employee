@@ -1,15 +1,25 @@
 from pptx import Presentation
-# from pptx.util import Inches, Pt
-# from pptx.dml.color import RGBColor  # , ColorFormat
-# from pptx.enum.text import MSO_AUTO_SIZE, PP_PARAGRAPH_ALIGNMENT
-#
-# from room import RoomOld
-from oldprofessor import OldProfessor
+
+import professor
+#from professor import Professor
 
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
+import requests
 
 BLANK_LAYOUT = Presentation().slide_layouts[6]
+
+
+def tag_iterator(url, *args, **kwargs):
+    if not args:
+        args = 'div',
+    if not kwargs:
+        kwargs = {'class_': 'ListVerticalImage-items-item'}
+
+    with requests.get(url) as request:
+        html_data = request.text
+    bs = BeautifulSoup(html_data, 'html.parser')
+    return bs.find_all(*args, **kwargs)
 
 
 def remove_prefix(string: str, pref: str):
@@ -47,7 +57,7 @@ def pull_professor_data_old(url="https://religion.byu.edu/directory"):
         except IndexError:
             pass
         name = tag.find_all(class_='PromoVerticalImage-title promo-title')[0].find('a').string
-        professors.append(OldProfessor(name, room))
+        professors.append(professor.Professor(name, room))
 
     return professors
 
@@ -70,7 +80,7 @@ def pull_professor_data_old(url="https://religion.byu.edu/directory"):
 #
 # def parse_professor_data(file_name='professors.txt'):
 #     with open(file_name, 'r') as file:
-#         return [OldProfessor.from_string(line) for line in file]
+#         return [professor.Professor.from_string(line) for line in file]
 
 
 # professors = update_professor_file()
