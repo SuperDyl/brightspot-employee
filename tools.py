@@ -1,9 +1,9 @@
 from pptx import Presentation
-from pptx.util import Inches, Pt
-from pptx.dml.color import RGBColor  # , ColorFormat
-from pptx.enum.text import MSO_AUTO_SIZE, PP_PARAGRAPH_ALIGNMENT
-
-from room import Room
+# from pptx.util import Inches, Pt
+# from pptx.dml.color import RGBColor  # , ColorFormat
+# from pptx.enum.text import MSO_AUTO_SIZE, PP_PARAGRAPH_ALIGNMENT
+#
+# from room import Room
 from professor import Professor
 
 from bs4 import BeautifulSoup
@@ -21,39 +21,6 @@ def print_bad_formatted_rooms():
             print(old)
     print("Done!")
     # print(*(f'{n.room}, {o.room}' for o, n in zip(old, professors)), sep='\n')
-
-
-# def add_slide(presentation: Presentation, prof_name):
-#     slide = presentation.slides.add_slide(BLANK_LAYOUT)
-#     textbox_height = Inches(1.58)
-#     name_textbox = slide.shapes.add_textbox(left=0, top=presentation.slide_height - textbox_height,
-#                                             width=presentation.slide_width, height=textbox_height)
-#     frame = name_textbox.text_frame
-#     frame.text = prof_name
-#     frame.auto_size = MSO_AUTO_SIZE.NONE
-#     frame.paragraphs[0].alignment = PP_PARAGRAPH_ALIGNMENT.CENTER
-#     font = frame.paragraphs[0].font
-#     font.size = Pt(88)
-#     font.color.rgb = RGBColor(255, 0, 0)
-
-
-def pull_professor_data(url="https://religion.byu.edu/directory"):
-    with urlopen(url) as request:
-        html_data = request.read().decode("utf-8")
-    bs = BeautifulSoup(html_data, 'html.parser')
-
-    professors = []
-    for tag in bs.find_all('div', class_='PromoVerticalImage-content'):
-        room = ''
-        try:
-            room = tag.find_all('p')[0].contents[0].string.strip()
-            room = Room.from_string(room)
-        except IndexError:
-            pass
-        name = tag.find_all(class_='PromoVerticalImage-title promo-title')[0].find('a').string
-        professors.append(Professor(str(name), room))
-
-    return professors
 
 
 def pull_professor_data_old(url="https://religion.byu.edu/directory"):

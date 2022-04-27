@@ -3,8 +3,9 @@ from person import Person
 
 
 class Professor (Person):
-    def __init__(self, name: str, room: str):  # , pic_file=""):
-        super().__init__(name, room)
+    def __init__(self, name: str, room: str, picture: str = "TODO", pic_url: str = "TODO2"):
+        super().__init__(name, room, picture)
+        self.pic_url = pic_url
         # self.name = name
         # self.room = room
         # self.picture = pic_file
@@ -20,6 +21,6 @@ class Professor (Person):
     def from_string(cls, string):
         *name, room = string.split(', ')
         prof = Professor(', '.join(name), Room.from_string(room))
-        cls.name = prof.name
-        cls.room = prof.room
-        return cls
+        # cls.name = prof.name
+        # cls.room = prof.room
+        return prof
