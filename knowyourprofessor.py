@@ -1,6 +1,6 @@
 # from flashcard_powerpoint import FlashcardPowerPoint
-from professor import Professor
-from room import Room
+from oldprofessor import OldProfessor
+# from room import Room
 
 from bs4 import BeautifulSoup
 import requests
@@ -8,52 +8,52 @@ import requests
 # import re
 from functools import partial
 
-import professor2
-from tools import remove_prefix, call_each
+import professor
+from tools import call_each  # ,  # remove_prefix
 
 RELED_DIR_URL = 'https://religion.byu.edu/directory'
-NAME_SUFFIXES = professor2.NAME_SUFFIXES
+NAME_SUFFIXES = professor.NAME_SUFFIXES
 
 
 def process_room(tag):
-    return professor2.process_room(tag)
+    return professor.process_room(tag)
 
 
 def process_first_name(tag):
-    return professor2.process_first_name(tag)
+    return professor.process_first_name(tag)
 
 
 def process_last_name(tag):
-    return professor2.process_last_name(tag)
+    return professor.process_last_name(tag)
 
 
 def process_split_name(tag) -> (str, str):
-    return professor2.process_split_name(tag)
+    return professor.process_split_name(tag)
 
 
 def process_full_name(tag):
-    return professor2.process_full_name(tag)
+    return professor.process_full_name(tag)
 
 
 def process_page_url(tag):
-    return professor2.process_page_url(tag)
+    return professor.process_page_url(tag)
 
 
 def process_telephone(tag):
-    return professor2.process_telephone(tag)
+    return professor.process_telephone(tag)
 
 
 def process_department(tag):
-    return professor2.process_department(tag)
+    return professor.process_department(tag)
 
 
 def process_job_title(tag):
-    return professor2.process_job_title(tag)
+    return professor.process_job_title(tag)
 
 
 def create_professor(tag):
     name, room, page_url = call_each((process_full_name, process_room, process_page_url), tag)
-    return Professor(str(name), room, pic_url=page_url)
+    return OldProfessor(str(name), room, pic_url=page_url)
 
 
 def create_professor2(url=RELED_DIR_URL):
@@ -63,13 +63,13 @@ def create_professor2(url=RELED_DIR_URL):
 
     for tag in bs.find_all('div', class_='ListVerticalImage-items-item'):  # ListVerticalImage-items-item
         name, room, page_url = call_each((process_full_name, process_room, process_page_url), tag)
-        yield Professor(str(name), room, pic_url=page_url)
+        yield OldProfessor(str(name), room, pic_url=page_url)
 
 
-def create_professors(iterator: iter):
-    out = list()
-    for item in iterator:
-        out.append(Professor(item))
+# def create_professors(iterator: iter):
+#     out = list()
+#     for item in iterator:
+#         out.append(OldProfessor(item))
 
 
 def tag_iterator(url, processor):
@@ -99,15 +99,16 @@ def tag_iterator3(url=RELED_DIR_URL):
 
 def tag_iterator4(url=RELED_DIR_URL, *args, **kwargs):
     if not args:
-        args = tuple('div')
+        # nonlocal args
+        args = 'div',
     if not kwargs:
+        # nonlocal kwargs
         kwargs = {'class_': 'ListVerticalImage-items-item'}
 
     with requests.get(url) as request:
         html_data = request.text
     bs = BeautifulSoup(html_data, 'html.parser')
-    for tag in bs.find_all('div', class_='ListVerticalImage-items-item'):
-    # for tag in bs.find_all(*args, **kwargs):
+    for tag in bs.find_all(*args, **kwargs):
         yield tag
 
 

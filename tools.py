@@ -4,7 +4,7 @@ from pptx import Presentation
 # from pptx.enum.text import MSO_AUTO_SIZE, PP_PARAGRAPH_ALIGNMENT
 #
 # from room import Room
-from professor import Professor
+from oldprofessor import OldProfessor
 
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
@@ -22,15 +22,15 @@ def call_each(funcs: iter, *args, **kwargs):
     return (x(*args, **kwargs) for x in funcs)
 
 
-def print_bad_formatted_rooms():
-    update_professor_file()
-    old_p = pull_professor_data_old()
-    professors = parse_professor_data()
-    for old, new in zip(old_p, professors):
-        if old.room != (str(new.room)[3:]):
-            print(old)
-    print("Done!")
-    # print(*(f'{n.room}, {o.room}' for o, n in zip(old, professors)), sep='\n')
+# def print_bad_formatted_rooms():
+#     update_professor_file()
+#     old_p = pull_professor_data_old()
+#     professors = parse_professor_data()
+#     for old, new in zip(old_p, professors):
+#         if old.room != (str(new.room)[3:]):
+#             print(old)
+#     print("Done!")
+#     # print(*(f'{n.room}, {o.room}' for o, n in zip(old, professors)), sep='\n')
 
 
 def pull_professor_data_old(url="https://religion.byu.edu/directory"):
@@ -47,30 +47,30 @@ def pull_professor_data_old(url="https://religion.byu.edu/directory"):
         except IndexError:
             pass
         name = tag.find_all(class_='PromoVerticalImage-title promo-title')[0].find('a').string
-        professors.append(Professor(name, room))
+        professors.append(OldProfessor(name, room))
 
     return professors
 
 
-def update_professor_file(file_name='professors.txt', professors=None):
-    if not professors:
-        professors = pull_professor_data(url="https://religion.byu.edu/directory")
-    new_prof_dict = dict(zip((x.name for x in professors), professors))
-    old_professors = parse_professor_data(file_name)
-    old_prof_dict = dict(zip((x.name for x in old_professors), old_professors))
-    old_prof_dict.update(new_prof_dict)
-    for name, prof in old_prof_dict.items():
-        prof.name = name
-
-    with open(file_name, 'w') as file:
-        file.write(('\n'.join((str(p) for p in old_prof_dict.values()))))
-
-    return old_prof_dict.values()
-
-
-def parse_professor_data(file_name='professors.txt'):
-    with open(file_name, 'r') as file:
-        return [Professor.from_string(line) for line in file]
+# def update_professor_file(file_name='professors.txt', professors=None):
+#     if not professors:
+#         professors = pull_professor_data(url="https://religion.byu.edu/directory")
+#     new_prof_dict = dict(zip((x.name for x in professors), professors))
+#     old_professors = parse_professor_data(file_name)
+#     old_prof_dict = dict(zip((x.name for x in old_professors), old_professors))
+#     old_prof_dict.update(new_prof_dict)
+#     for name, prof in old_prof_dict.items():
+#         prof.name = name
+#
+#     with open(file_name, 'w') as file:
+#         file.write(('\n'.join((str(p) for p in old_prof_dict.values()))))
+#
+#     return old_prof_dict.values()
+#
+#
+# def parse_professor_data(file_name='professors.txt'):
+#     with open(file_name, 'r') as file:
+#         return [OldProfessor.from_string(line) for line in file]
 
 
 # professors = update_professor_file()
