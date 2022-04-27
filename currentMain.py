@@ -17,16 +17,7 @@ RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
 
 
 if __name__ == "__main__":
-    all_profs = [Professor.from_html_tag(tag) for tag in tag_iterator4(RELIGION_DIR_URL)]
-    a = '\n'.join(tuple(str(x) for x in all_profs))
-    print(a)
-    Professor.to_csv('testing.csv', all_profs)
-
-    csv = Professor.from_csv('testing.csv')
-    b = '\n'.join(tuple(str(x) for x in csv))
-    print(b)
-    print(a == b)
-
+    pass
     # items = '\n'.join('###'.join((str(y) for y in x)) for x in get_items((process_first_name, process_last_name,
     #                                                                       process_job_title, process_room)))
     # print(items)

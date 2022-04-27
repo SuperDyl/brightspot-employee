@@ -10,7 +10,8 @@ NON_EXISTENT = ''
 
 
 class Professor:
-    def __init__(self, first_name, last_name, room, page_url, telephone, department, job_title):
+    def __init__(self, first_name: str, last_name: str, room: Room, page_url: str,
+                 telephone: str, department: str, job_title: str):
         self.first_name = first_name
         self.last_name = last_name
         self.room = room
