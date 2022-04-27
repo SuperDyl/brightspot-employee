@@ -1,4 +1,4 @@
-from room import Room  # TODO: make part of package
+from room2 import Room
 from tools import remove_prefix
 
 from pandas import DataFrame, read_csv
@@ -95,7 +95,7 @@ def process_room(tag):
     with suppress(AttributeError):
         room_text = tag.find('p').text.strip()
         return Room.from_string(room_text)
-    return Room('', '', '')  # TODO: should this return empty Room or None?
+    return Room('', '', '')  # TODO: should this return empty RoomOld or None?
 
 
 def process_first_name(tag):

@@ -3,7 +3,7 @@ from pptx import Presentation
 # from pptx.dml.color import RGBColor  # , ColorFormat
 # from pptx.enum.text import MSO_AUTO_SIZE, PP_PARAGRAPH_ALIGNMENT
 #
-# from room import Room
+# from room import RoomOld
 from oldprofessor import OldProfessor
 
 from bs4 import BeautifulSoup

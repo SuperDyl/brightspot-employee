@@ -1,4 +1,4 @@
-from room import Room
+from room2 import Room
 from person import Person
 
 

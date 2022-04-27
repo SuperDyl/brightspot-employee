@@ -1,6 +1,6 @@
 # from flashcard_powerpoint import FlashcardPowerPoint
 from oldprofessor import OldProfessor
-# from room import Room
+# from room import RoomOld
 
 from bs4 import BeautifulSoup
 import requests

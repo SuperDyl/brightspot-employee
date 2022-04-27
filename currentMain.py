@@ -2,12 +2,12 @@
 A flashcards PowerPoint builder
 """
 
-from knowyourprofessor import tag_iterator4
-from professor import Professor
+# from knowyourprofessor import tag_iterator4
+# from professor import Professor
 
 # import knowyourprofessor
 # from knowyourprofessor import *
-# from room import Room
+# from room import RoomOld
 # from professor import Professor
 
 RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     #                                                                       process_job_title, process_room)))
     # print(items)
 
-    # b = Room('JSB', '3', '364')
+    # b = RoomOld('JSB', '3', '364')
     # print(b)
     #
     # c = Professor("John Doe", b)
