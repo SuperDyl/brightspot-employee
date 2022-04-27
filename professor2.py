@@ -1,6 +1,8 @@
 from room import Room  # TODO: make part of package
 from tools import remove_prefix
 
+from pandas import DataFrame, read_csv
+
 from contextlib import suppress
 
 NAME_SUFFIXES = ('jr.', 'iii', 'sr.')
@@ -8,16 +10,52 @@ NON_EXISTENT = ''
 
 
 class Professor2:
-    def __init__(self, tag):
-        self.first_name, self.last_name = process_split_name(tag)
-        self.room = process_room(tag)
-        self.page_url = process_page_url(tag)
-        self.telephone = process_telephone(tag)
-        self.department = process_department(tag)
-        self.job_title = process_job_title(tag)
+    def __init__(self, first_name, last_name, room, page_url, telephone, department, job_title):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.room = room
+        self.page_url = page_url
+        self.telephone = telephone
+        self.department = department
+        self.job_title = job_title
 
     def __str__(self):
         return str(self.__dict__)
+
+    def __repr__(self):
+        return str(self)
+
+    @classmethod
+    def from_html_tag(cls, tag):
+        first_name, last_name = process_split_name(tag)
+        return cls(first_name,
+                   last_name,
+                   process_room(tag),
+                   process_page_url(tag),
+                   process_telephone(tag),
+                   process_department(tag),
+                   process_job_title(tag))
+
+    @classmethod
+    def from_dict(cls, kwargs):
+        room = kwargs.room if isinstance(kwargs.room, Room) else Room.from_string(kwargs.room)
+        return cls(kwargs.first_name,
+                   kwargs.last_name,
+                   room,
+                   kwargs.page_url,
+                   kwargs.telephone,
+                   kwargs.department,
+                   kwargs.job_title)
+
+    @staticmethod
+    def to_csv(file_path, professors: iter) -> None:
+        dataframe = DataFrame.from_records((p.__dict__ for p in professors))
+        dataframe.to_csv(file_path)
+
+    @staticmethod
+    def from_csv(file_path) -> list:
+        dataframe = read_csv(file_path, keep_default_na=False)
+        return [Professor2.from_dict(row) for row in dataframe.itertuples()]
 
 
 def process_job_title(tag):
@@ -47,7 +85,7 @@ def process_page_url(tag):
 
 
 def process_room(tag):
-    with suppress(IndexError, AttributeError, TypeError):
+    with suppress(AttributeError):
         room_text = tag.find('p').text.strip()
         return Room.from_string(room_text)
     return Room('', '', '')  # TODO: should this return empty Room or None?
