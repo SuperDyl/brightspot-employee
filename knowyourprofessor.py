@@ -8,82 +8,47 @@ import requests
 # import re
 from functools import partial
 
+import professor2
+from tools import remove_prefix, call_each
+
 RELED_DIR_URL = 'https://religion.byu.edu/directory'
-NAME_SUFFIXES = ('jr.', 'iii', 'sr.')
-
-
-def remove_prefix(string: str, pref: str):
-    if pref == string[0:len(pref)]:
-        return string[len(pref):-1]
-    return string
-
-
-def call_each(funcs: iter, *args, **kwargs):
-    return (x(*args, **kwargs) for x in funcs)
+NAME_SUFFIXES = professor2.NAME_SUFFIXES
 
 
 def process_room(tag):
-    try:
-        room = tag.find('p').text.strip()
-        room = Room.from_string(room)
-    except (IndexError, AttributeError):
-        return Room('', '', '')
-    except TypeError:
-        print("I'll fix this later")
-        return Room('', '', '')
-    return room
+    return professor2.process_room(tag)
 
 
 def process_first_name(tag):
-    first_name, _ = process_split_name(tag)
-    return first_name
+    return professor2.process_first_name(tag)
 
 
 def process_last_name(tag):
-    _, last_name = process_split_name(tag)
-    return last_name
+    return professor2.process_last_name(tag)
 
 
 def process_split_name(tag) -> (str, str):
-    full_name = process_full_name(tag)
-    full_split_name = full_name.split(' ')
-    if full_split_name[-1].lower() in NAME_SUFFIXES:
-        *first, last = full_split_name[:-1]
-        return ' '.join(first), ' '.join((last, full_split_name[-1]))
-    # else
-    *first, last = full_split_name
-    return ' '.join(first), last
+    return professor2.process_split_name(tag)
 
 
 def process_full_name(tag):
-    return tag.find('a', attrs={'data-cms-ai': '0'})['aria-label'].replace(u'\xa0', u' ')
+    return professor2.process_full_name(tag)
 
 
 def process_page_url(tag):
-    return tag.find(class_="Link").href
+    return professor2.process_page_url(tag)
 
 
 def process_telephone(tag):
-    out = tag.find_all(class_='PromoVerticalImage-phoneNumber')
-    if not out:
-        return ''
-    out = out[0].find('a')['href']
-    out = remove_prefix(out, 'tel:')
-    return out
+    return professor2.process_telephone(tag)
 
 
 def process_department(tag):
-    out = tag.find_all(class_='PromoVerticalImage-groups')
-    if not out:
-        return ''
-    return out[0].string
+    return professor2.process_department(tag)
 
 
 def process_job_title(tag):
-    out = tag.find(class_='PromoVerticalImage-jobTitle')
-    if out is None:
-        return ''
-    return out.text
+    return professor2.process_job_title(tag)
 
 
 def create_professor(tag):
@@ -129,6 +94,20 @@ def tag_iterator3(url=RELED_DIR_URL):
         html_data = request.text
     bs = BeautifulSoup(html_data, 'html.parser')
     for tag in bs.find_all('div', class_='ListVerticalImage-items-item'):
+        yield tag
+
+
+def tag_iterator4(url=RELED_DIR_URL, *args, **kwargs):
+    if not args:
+        args = tuple('div')
+    if not kwargs:
+        kwargs = {'class_': 'ListVerticalImage-items-item'}
+
+    with requests.get(url) as request:
+        html_data = request.text
+    bs = BeautifulSoup(html_data, 'html.parser')
+    for tag in bs.find_all('div', class_='ListVerticalImage-items-item'):
+    # for tag in bs.find_all(*args, **kwargs):
         yield tag
 
 

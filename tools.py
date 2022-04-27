@@ -12,6 +12,16 @@ from urllib.request import urlopen
 BLANK_LAYOUT = Presentation().slide_layouts[6]
 
 
+def remove_prefix(string: str, pref: str):
+    if pref == string[0:len(pref)]:
+        return string[len(pref):-1]
+    return string
+
+
+def call_each(funcs: iter, *args, **kwargs):
+    return (x(*args, **kwargs) for x in funcs)
+
+
 def print_bad_formatted_rooms():
     update_professor_file()
     old_p = pull_professor_data_old()
