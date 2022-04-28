@@ -1,13 +1,29 @@
+"""
+Random utility functions used by the professor package
+"""
 from pptx import Presentation
 
 import professor
-#from professor import Professor
 
 from bs4 import BeautifulSoup
-from urllib.request import urlopen
+from typing import Iterable
 import requests
 
 BLANK_LAYOUT = Presentation().slide_layouts[6]
+NAME_SUFFIXES = ['jr.', 'iii', 'sr.']
+
+
+def split_name(full_name: str, name_suffixes: Iterable[str] = None) -> (str, str):
+    """Return the estimated first and last name as a tuple"""
+    if name_suffixes is None:
+        name_suffixes = NAME_SUFFIXES
+    full_split_name = full_name.split(' ')
+    if full_split_name[-1].lower() in name_suffixes:
+        *first, last = full_split_name[:-1]
+        return ' '.join(first), ' '.join((last, full_split_name[-1]))
+    # else
+    *first, last = full_split_name
+    return ' '.join(first), last
 
 
 def tag_iterator(url, *args, **kwargs):
@@ -43,23 +59,23 @@ def call_each(funcs: iter, *args, **kwargs):
 #     # print(*(f'{n.room}, {o.room}' for o, n in zip(old, professors)), sep='\n')
 
 
-def pull_professor_data_old(url="https://religion.byu.edu/directory"):
-    with urlopen(url) as request:
-        html_data = request.read().decode("utf-8")
-    bs = BeautifulSoup(html_data, 'html.parser')
-
-    professors = []
-    for tag in bs.find_all('div', class_='PromoVerticalImage-content'):
-        room = ''
-        try:
-            room = tag.find_all('p')[0].contents[0].string.strip()
-            # room = RoomAddress.from_string(room)
-        except IndexError:
-            pass
-        name = tag.find_all(class_='PromoVerticalImage-title promo-title')[0].find('a').string
-        professors.append(professor.Professor(name, room))
-
-    return professors
+# def pull_professor_data_old(url="https://religion.byu.edu/directory"):
+#     with urlopen(url) as request:
+#         html_data = request.read().decode("utf-8")
+#     bs = BeautifulSoup(html_data, 'html.parser')
+#
+#     professors = []
+#     for tag in bs.find_all('div', class_='PromoVerticalImage-content'):
+#         room = ''
+#         try:
+#             room = tag.find_all('p')[0].contents[0].string.strip()
+#             # room = RoomAddress.from_string(room)
+#         except IndexError:
+#             pass
+#         name = tag.find_all(class_='PromoVerticalImage-title promo-title')[0].find('a').string
+#         professors.append(professor.Professor(name, room))
+#
+#     return professors
 
 
 # def update_professor_file(file_name='professors.txt', professors=None):

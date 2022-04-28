@@ -48,12 +48,6 @@ class Room:
     @classmethod
     def from_string(cls, string):
         string = Room._clean_string(string)
-
-        # rm =
-        # cls.floor = rm.floor
-        # cls.rm_num = rm.rm_num
-        # cls.rm_letter = rm.rm_letter
-        # cls.building = rm.building
         return Room(*Room._split_string(string))
 
     @staticmethod
