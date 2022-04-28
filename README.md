@@ -1,1 +1,1 @@
-# KnowYourProfessor
+# RelEdProfessors
