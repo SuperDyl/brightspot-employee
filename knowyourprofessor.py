@@ -16,42 +16,6 @@ RELED_DIR_URL = professor.RELIGION_DIR_URL
 NAME_SUFFIXES = professor.NAME_SUFFIXES
 
 
-def process_room(tag):
-    return professor.process_room(tag)
-
-
-def process_first_name(tag):
-    return professor.process_first_name(tag)
-
-
-def process_last_name(tag):
-    return professor.process_last_name(tag)
-
-
-def process_split_name(tag) -> (str, str):
-    return professor.process_split_name(tag)
-
-
-def process_full_name(tag):
-    return professor.process_full_name(tag)
-
-
-def process_page_url(tag):
-    return professor.process_page_url(tag)
-
-
-def process_telephone(tag):
-    return professor.process_telephone(tag)
-
-
-def process_department(tag):
-    return professor.process_department(tag)
-
-
-def process_job_title(tag):
-    return professor.process_job_title(tag)
-
-
 # def create_professor(tag):
 #     name, room, page_url = call_each((process_full_name, process_room, process_page_url), tag)
 #     return OldProfessor(str(name), room, pic_url=page_url)
@@ -80,26 +44,6 @@ def process_job_title(tag):
 #
 #     for tag in bs.find_all('div', class_='ListVerticalImage-items-item'):
 #         yield processor(tag)
-#
-#
-# def tag_iterator2(url, funcs: iter):
-#     with requests.get(url) as request:
-#         html_data = request.text
-#     bs = BeautifulSoup(html_data, 'html.parser')
-#     for tag in bs.find_all('div', class_='ListVerticalImage-items-item'):
-#         yield call_each(funcs, tag)
-#
-#
-# def tag_iterator3(url=RELED_DIR_URL):
-#     with requests.get(url) as request:
-#         html_data = request.text
-#     bs = BeautifulSoup(html_data, 'html.parser')
-#     for tag in bs.find_all('div', class_='ListVerticalImage-items-item'):
-#         yield tag
-
-
-# def tag_iterator4(url=RELED_DIR_URL, *args, **kwargs):
-#     return tools.tag_iterator(url, *args, **kwargs)
 
 
 # professor_iterator = partial(tag_iterator, processor=create_professor)

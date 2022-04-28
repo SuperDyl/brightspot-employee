@@ -17,7 +17,7 @@ from bs4.element import Tag as BeautifulSoup_Tag
 
 from contextlib import suppress
 from collections import namedtuple
-from typing import Iterable, List
+from typing import Iterable, List, Union
 from os import path
 
 RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
@@ -27,6 +27,10 @@ NON_EXISTENT = ''
 PROF_ATTRS_TUPLE = namedtuple('PROF_ATTRS_TUPLE',
                               ('first_name', 'last_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
                               )
+
+ALT_PROF_ATTRS_TUPLE = namedtuple('ALT_PROF_ATTRS_TUPLE',
+                                  ('full_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
+                                  )
 
 
 class Professor:
@@ -51,6 +55,14 @@ class Professor:
     def __repr__(self) -> str:
         return str(self)
 
+    @property
+    def full_name(self):
+        return ' '.join((self.first_name, self.last_name))
+
+    @full_name.setter
+    def full_name(self, new_full_name):
+        self.first_name, self.last_name = split_name(new_full_name, name_suffixes=NAME_SUFFIXES)
+
     @classmethod
     def from_html_tag(cls, tag: BeautifulSoup_Tag):
         """
@@ -69,7 +81,7 @@ class Professor:
                    process_job_title(tag))
 
     @classmethod
-    def from_named_tuple(cls, kwargs: PROF_ATTRS_TUPLE):
+    def from_named_tuple(cls, kwargs: Union[PROF_ATTRS_TUPLE, ALT_PROF_ATTRS_TUPLE]):
         """
         Create a Professor using a NamedTuple.
 
@@ -77,8 +89,12 @@ class Professor:
         :return: Professor instance
         """
         room_address = kwargs.room if isinstance(kwargs.room, Room) else Room.from_string(kwargs.room)
-        return cls(kwargs.first_name,
-                   kwargs.last_name,
+        if not ('first_name' in kwargs._fields and 'last_name' in kwargs._fields):
+            first_name, last_name = split_name(kwargs.full_name, NAME_SUFFIXES)
+        else:
+            first_name, last_name = kwargs.first_name, kwargs.last_name
+        return cls(first_name,
+                   last_name,
                    room_address,
                    kwargs.page_url,
                    kwargs.telephone,

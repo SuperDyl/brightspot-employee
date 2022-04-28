@@ -50,7 +50,7 @@ def remove_prefix(input_string: str, prefix: str):
     """Return input_string but without prefix (if it exactly appears at the start of input_string)."""
     if prefix != input_string[0:len(prefix)]:
         return input_string
-    return input_string[len(prefix):-1]
+    return input_string[len(prefix):]
 
 
 # from pptx import Presentation
