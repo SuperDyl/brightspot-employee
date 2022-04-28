@@ -100,7 +100,7 @@ class Professor:
     def from_csv(file_path: path) -> List['Professor']:
         """
         Create a list of Professor instances from a proper csv file.
-        The csv file must contain every header/column that Professor uses for it's attributes
+        The csv file must contain every header/column that Professor uses for its attributes
 
         :param file_path: path to load the csv file from
         :return: list of Professor instances from the file's data
@@ -155,7 +155,7 @@ def process_room(tag: BeautifulSoup_Tag) -> Room:
     with suppress(AttributeError):
         room_text = tag.find('p').text.strip()
         return Room.from_string(room_text)
-    return Room('', '', '')  # TODO: should this return empty RoomOld or None?
+    return Room('', '', '')
 
 
 def process_first_name(tag: BeautifulSoup_Tag) -> str:

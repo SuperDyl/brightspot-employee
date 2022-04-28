@@ -1,15 +1,15 @@
 """
 Random utility functions used by the professor package
+
+Constants:
+NAME_SUFFIXES - default name suffixes to ignore while splitting a name
 """
-from pptx import Presentation
-
-import professor
-
-from bs4 import BeautifulSoup
-from typing import Iterable
 import requests
+from bs4 import BeautifulSoup
+from bs4.element import ResultSet
 
-BLANK_LAYOUT = Presentation().slide_layouts[6]
+from typing import Iterable
+
 NAME_SUFFIXES = ['jr.', 'iii', 'sr.']
 
 
@@ -26,7 +26,15 @@ def split_name(full_name: str, name_suffixes: Iterable[str] = None) -> (str, str
     return ' '.join(first), last
 
 
-def tag_iterator(url, *args, **kwargs):
+def tag_iterator(url: str, *args, **kwargs) -> ResultSet:
+    """
+    Return an iterable of the specified found tags in the html found at url
+    Provided args and kwargs are directly passed as if in a BeautifulSoup.find_all function
+
+    :param url: url of html text to pull
+    :param args: args to filter the iterator by
+    :param kwargs: key-value pairs to filter the iterator by
+    """
     if not args:
         args = 'div',
     if not kwargs:
@@ -38,14 +46,18 @@ def tag_iterator(url, *args, **kwargs):
     return bs.find_all(*args, **kwargs)
 
 
-def remove_prefix(string: str, pref: str):
-    if pref == string[0:len(pref)]:
-        return string[len(pref):-1]
-    return string
+def remove_prefix(input_string: str, prefix: str):
+    """Return input_string but without prefix (if it exactly appears at the start of input_string)."""
+    if prefix != input_string[0:len(prefix)]:
+        return input_string
+    return input_string[len(prefix):-1]
 
 
-def call_each(funcs: iter, *args, **kwargs):
-    return (x(*args, **kwargs) for x in funcs)
+# from pptx import Presentation
+# BLANK_LAYOUT = Presentation().slide_layouts[6]
+
+# def call_each(funcs: iter, *args, **kwargs):
+#     return (x(*args, **kwargs) for x in funcs)
 
 
 # def print_bad_formatted_rooms():
@@ -68,11 +80,11 @@ def call_each(funcs: iter, *args, **kwargs):
 #     for tag in bs.find_all('div', class_='PromoVerticalImage-content'):
 #         room = ''
 #         try:
-#             room = tag.find_all('p')[0].contents[0].string.strip()
+#             room = tag.find_all('p')[0].contents[0].room_string.strip()
 #             # room = RoomAddress.from_string(room)
 #         except IndexError:
 #             pass
-#         name = tag.find_all(class_='PromoVerticalImage-title promo-title')[0].find('a').string
+#         name = tag.find_all(class_='PromoVerticalImage-title promo-title')[0].find('a').room_string
 #         professors.append(professor.Professor(name, room))
 #
 #     return professors
@@ -110,14 +122,14 @@ def call_each(funcs: iter, *args, **kwargs):
 # professors = pull_professor_data()
 # print(*professors, sep='\n')
 #
-# rooms = RoomAddress.from_string_iter(rooms)
+# rooms = RoomAddress.from_room_string_for_each(rooms)
 # print(len(names), len(rooms))
 # print(*(f'{name:25}={str(room)}' for name, room in zip(names, rooms)), sep='\n')
 #
 # names, rooms = pull_professor_data()
 # print(*(r for r in rooms), sep='\n')
-# print(*(r for r in RoomAddress.from_string_iter(rooms)), sep='\n')
-# rooms = RoomAddress.from_string_iter(rooms)
+# print(*(r for r in RoomAddress.from_room_string_for_each(rooms)), sep='\n')
+# rooms = RoomAddress.from_room_string_for_each(rooms)
 # print(len(names), len(rooms))
 # print(*(f'{name:25}={str(room)}' for name, room in zip(names, rooms)), sep='\n')
 #
