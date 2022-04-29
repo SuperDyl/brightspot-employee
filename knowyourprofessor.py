@@ -13,7 +13,7 @@ import professor
 
 
 RELED_DIR_URL = professor.RELIGION_DIR_URL
-NAME_SUFFIXES = professor.NAME_SUFFIXES
+NAME_SUFFIXES = professor.ProfessorProcessor.NAME_SUFFIXES
 
 
 # def create_professor(tag):

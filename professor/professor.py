@@ -1,12 +1,15 @@
 """
-Stores data about Professors in BYU's Religious Education
+Processes and stores data about Professors in BYU's Religious Education
 
-Includes methods to pull data from online and store/pull from csv files
+Classes:
+Professor - Store data for a professor in BYU's Religious Education.
+ProfessorProcessor - Functions used to get Brightspot employee data.
 
 Constants:
 RELIGION_DIR_URL - url for Religious Education at BYU
-NAME_SUFFIXES - name suffixes (such as jr.) for splitting first/last names
-NON_EXISTENT - value returned for most fields that blank
+PROFESSOR_ATTRS - Named tuple for expected fields in a named tuple for a Professor instance
+ALT_PROFESSOR_ATTRS - Named tuple for alternate expected fields in a named tuple for a Professor instance
+
 """
 
 from .room import Room
@@ -21,23 +24,104 @@ from typing import Iterable, List, Union
 from os import path
 
 RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
-NAME_SUFFIXES = ['jr.', 'iii', 'sr.']
-NON_EXISTENT = ''
 
-PROF_ATTRS_TUPLE = namedtuple('PROF_ATTRS_TUPLE',
-                              ('first_name', 'last_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
-                              )
+PROFESSOR_ATTRS = namedtuple('PROFESSOR_ATTRS',
+                             ('first_name', 'last_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
+                             )
 
-ALT_PROF_ATTRS_TUPLE = namedtuple('ALT_PROF_ATTRS_TUPLE',
-                                  ('full_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
-                                  )
+ALT_PROFESSOR_ATTRS = namedtuple('ALT_PROFESSOR_ATTRS',
+                                 ('full_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
+                                 )
+
+
+class ProfessorProcessor:
+    """
+    Functions used to get Brightspot employee data.
+
+    This class assumes html data comes from RELIGION_DIR_URL
+    Subclass for use with Professor by setting Professor.processor to a subclass of ProfessorProcessor
+    or the processor attribute of a sublass of Professor
+
+    Constants:
+    NAME_SUFFIXES - name suffixes (such as jr.) for splitting first/last names
+    NON_EXISTENT - value returned for most fields that blank
+
+    """
+
+    NAME_SUFFIXES = ['jr.', 'iii', 'sr.']
+    NON_EXISTENT = ''
+
+    @staticmethod
+    def process_job_title(tag: BeautifulSoup_Tag) -> str:
+        """Return the first job title found in tag"""
+        job_title = tag.find(class_='PromoVerticalImage-jobTitle')
+        if job_title is None:
+            return ProfessorProcessor.NON_EXISTENT
+        return job_title.text
+
+    @staticmethod
+    def process_department(tag: BeautifulSoup_Tag) -> str:
+        """Return the first department found in tag"""
+        department = tag.find(class_='PromoVerticalImage-groups')
+        if department is None:
+            return ProfessorProcessor.NON_EXISTENT
+        return department.text
+
+    @staticmethod
+    def process_telephone(tag: BeautifulSoup_Tag) -> str:
+        """Return the first telephone number found in tag"""
+        telephone_tag = tag.find(class_='PromoVerticalImage-phoneNumber')
+        if telephone_tag is None:
+            return ProfessorProcessor.NON_EXISTENT
+        phone_ref = telephone_tag.find('a')['href']
+        return remove_prefix(phone_ref, 'tel:')
+
+    @staticmethod
+    def process_page_url(tag: BeautifulSoup_Tag) -> str:
+        """Return the first hyperlinked url found in tag"""
+        return tag.find(class_="Link")['href']
+
+    @staticmethod
+    def process_room(tag: BeautifulSoup_Tag) -> Room:
+        """Return the first room number found in tag"""
+        with suppress(AttributeError):
+            room_text = tag.find('p').text.strip()
+            return Room.from_string(room_text)
+        return Room('', '', '')
+
+    @staticmethod
+    def process_first_name(tag: BeautifulSoup_Tag) -> str:
+        """Return an estimation of the first name from tag"""
+        first_name, _ = ProfessorProcessor.process_split_name(tag)
+        return first_name
+
+    @staticmethod
+    def process_last_name(tag: BeautifulSoup_Tag) -> str:
+        """Return an estimation of the last name from tag"""
+        _, last_name = ProfessorProcessor.process_split_name(tag)
+        return last_name
+
+    @staticmethod
+    def process_full_name(tag: BeautifulSoup_Tag) -> str:
+        """Return the first employee name found in tag"""
+        return tag.find('a', attrs={'data-cms-ai': '0'})['aria-label'].replace(u'\xa0', u' ')
+
+    @staticmethod
+    def process_split_name(tag: BeautifulSoup_Tag) -> (str, str):
+        """Return the estimated first and last names from the first employee name found in tag"""
+        full_name = ProfessorProcessor.process_full_name(tag)
+        return split_name(full_name, ProfessorProcessor.NAME_SUFFIXES)
 
 
 class Professor:
     """
     Store data for a professor in BYU's Religious Education.
 
+    Class Attributes:
+    processor - class used for processing all professor fields
     """
+
+    processor = ProfessorProcessor
 
     def __init__(self, first_name: str, last_name: str, room_address: Room,
                  page_url: str, telephone: str, department: str, job_title: str):
@@ -61,7 +145,7 @@ class Professor:
 
     @full_name.setter
     def full_name(self, new_full_name):
-        self.first_name, self.last_name = split_name(new_full_name, name_suffixes=NAME_SUFFIXES)
+        self.first_name, self.last_name = split_name(new_full_name, name_suffixes=self.processor.NAME_SUFFIXES)
 
     @classmethod
     def from_html_tag(cls, tag: BeautifulSoup_Tag):
@@ -71,17 +155,17 @@ class Professor:
         :param tag: : BeautifulSoup_Tag containing exactly one professor's data
         :return: Professor instance
         """
-        first_name, last_name = process_split_name(tag)
+        first_name, last_name = cls.processor.process_split_name(tag)
         return cls(first_name,
                    last_name,
-                   process_room(tag),
-                   process_page_url(tag),
-                   process_telephone(tag),
-                   process_department(tag),
-                   process_job_title(tag))
+                   cls.processor.process_room(tag),
+                   cls.processor.process_page_url(tag),
+                   cls.processor.process_telephone(tag),
+                   cls.processor.process_department(tag),
+                   cls.processor.process_job_title(tag))
 
     @classmethod
-    def from_named_tuple(cls, kwargs: Union[PROF_ATTRS_TUPLE, ALT_PROF_ATTRS_TUPLE]):
+    def from_named_tuple(cls, kwargs: Union[PROFESSOR_ATTRS, ALT_PROFESSOR_ATTRS]):
         """
         Create a Professor using a NamedTuple.
 
@@ -90,7 +174,7 @@ class Professor:
         """
         room_address = kwargs.room if isinstance(kwargs.room, Room) else Room.from_string(kwargs.room)
         if not ('first_name' in kwargs._fields and 'last_name' in kwargs._fields):
-            first_name, last_name = split_name(kwargs.full_name, NAME_SUFFIXES)
+            first_name, last_name = split_name(kwargs.full_name, cls.processor.NAME_SUFFIXES)
         else:
             first_name, last_name = kwargs.first_name, kwargs.last_name
         return cls(first_name,
@@ -134,64 +218,3 @@ class Professor:
         :return: list of Professor instances from the url's data
         """
         return [Professor.from_html_tag(tag) for tag in tag_iterator(url)]
-
-
-def process_job_title(tag: BeautifulSoup_Tag) -> str:
-    """Return the first job title found in tag"""
-    job_title = tag.find(class_='PromoVerticalImage-jobTitle')
-    if job_title is None:
-        return NON_EXISTENT
-    return job_title.text
-
-
-def process_department(tag: BeautifulSoup_Tag) -> str:
-    """Return the first department found in tag"""
-    department = tag.find(class_='PromoVerticalImage-groups')
-    if department is None:
-        return NON_EXISTENT
-    return department.text
-
-
-def process_telephone(tag: BeautifulSoup_Tag) -> str:
-    """Return the first telephone number found in tag"""
-    telephone_tag = tag.find(class_='PromoVerticalImage-phoneNumber')
-    if telephone_tag is None:
-        return NON_EXISTENT
-    phone_ref = telephone_tag.find('a')['href']
-    return remove_prefix(phone_ref, 'tel:')
-
-
-def process_page_url(tag: BeautifulSoup_Tag) -> str:
-    """Return the first hyperlinked url found in tag"""
-    return tag.find(class_="Link")['href']
-
-
-def process_room(tag: BeautifulSoup_Tag) -> Room:
-    """Return the first room number found in tag"""
-    with suppress(AttributeError):
-        room_text = tag.find('p').text.strip()
-        return Room.from_string(room_text)
-    return Room('', '', '')
-
-
-def process_first_name(tag: BeautifulSoup_Tag) -> str:
-    """Return an estimation of the first name from tag"""
-    first_name, _ = process_split_name(tag)
-    return first_name
-
-
-def process_last_name(tag: BeautifulSoup_Tag) -> str:
-    """Return an estimation of the last name from tag"""
-    _, last_name = process_split_name(tag)
-    return last_name
-
-
-def process_full_name(tag: BeautifulSoup_Tag) -> str:
-    """Return the first employee name found in tag"""
-    return tag.find('a', attrs={'data-cms-ai': '0'})['aria-label'].replace(u'\xa0', u' ')
-
-
-def process_split_name(tag: BeautifulSoup_Tag) -> (str, str):
-    """Return the estimated first and last names from the first employee name found in tag"""
-    full_name = process_full_name(tag)
-    return split_name(full_name, NAME_SUFFIXES)
