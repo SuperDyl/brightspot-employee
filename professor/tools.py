@@ -26,6 +26,7 @@ def split_name(full_name: str, name_suffixes: Iterable[str] = None) -> (str, str
     return ' '.join(first), last
 
 
+# noinspection GrazieInspection
 def tag_iterator(url: str, *args, **kwargs) -> ResultSet:
     """
     Return an iterable of the specified found tags in the html found at url

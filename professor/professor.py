@@ -85,7 +85,7 @@ class Professor:
         """
         Create a Professor using a NamedTuple.
 
-        :param kwargs: data to fill a new Professor instance
+        :param kwargs: : data to fill a new Professor instance
         :return: Professor instance
         """
         room_address = kwargs.room if isinstance(kwargs.room, Room) else Room.from_string(kwargs.room)
@@ -106,7 +106,7 @@ class Professor:
         """
         Create a comma-seperated-values file at file_path.
 
-        :param file_path: path to save the csv file to
+        :param file_path: : path to save the csv file to
         :param professors: Professor objects to be included in the file
         """
         dataframe = DataFrame.from_records((p.__dict__ for p in professors))
@@ -118,7 +118,7 @@ class Professor:
         Create a list of Professor instances from a proper csv file.
         The csv file must contain every header/column that Professor uses for its attributes
 
-        :param file_path: path to load the csv file from
+        :param file_path: : path to load the csv file from
         :return: list of Professor instances from the file's data
         """
         dataframe = read_csv(file_path, keep_default_na=False)
@@ -130,7 +130,7 @@ class Professor:
         Return a list of Professor instances using data from the website at url.
         The url is only guaranteed to work at RELIGION_DIR_URL, the default url
 
-        :param url: webpage to pull all data from
+        :param url: : webpage to pull all data from
         :return: list of Professor instances from the url's data
         """
         return [Professor.from_html_tag(tag) for tag in tag_iterator(url)]
