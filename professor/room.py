@@ -65,7 +65,7 @@ class Room:
         return building, floor, rm_num, rm_letter
 
     @classmethod
-    def from_string(cls, room_string: str):
+    def from_string(cls, room_string: str) -> 'Room':
         """
         Return a Room instance after cleaning-up room_string.
         """

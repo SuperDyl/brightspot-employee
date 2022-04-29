@@ -47,7 +47,7 @@ def tag_iterator(url: str, *args, **kwargs) -> ResultSet:
     return bs.find_all(*args, **kwargs)
 
 
-def remove_prefix(input_string: str, prefix: str):
+def remove_prefix(input_string: str, prefix: str) -> str:
     """Return input_string but without prefix (if it exactly appears at the start of input_string)."""
     if prefix != input_string[0:len(prefix)]:
         return input_string

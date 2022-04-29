@@ -139,8 +139,11 @@ class Professor:
     def __repr__(self) -> str:
         return str(self)
 
+    def download_photo(self, file_path: path) -> None:
+        pass
+
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         return ' '.join((self.first_name, self.last_name))
 
     @full_name.setter
@@ -148,7 +151,7 @@ class Professor:
         self.first_name, self.last_name = split_name(new_full_name, name_suffixes=self.processor.NAME_SUFFIXES)
 
     @classmethod
-    def from_html_tag(cls, tag: BeautifulSoup_Tag):
+    def from_html_tag(cls, tag: BeautifulSoup_Tag) -> 'Professor':
         """
         Create a Professor using a BeautifulSoup tag object.
 
@@ -165,7 +168,7 @@ class Professor:
                    cls.processor.process_job_title(tag))
 
     @classmethod
-    def from_named_tuple(cls, kwargs: Union[PROFESSOR_ATTRS, ALT_PROFESSOR_ATTRS]):
+    def from_named_tuple(cls, kwargs: Union[PROFESSOR_ATTRS, ALT_PROFESSOR_ATTRS]) -> 'Professor':
         """
         Create a Professor using a NamedTuple.
 
