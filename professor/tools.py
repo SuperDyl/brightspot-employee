@@ -8,9 +8,39 @@ import requests
 from bs4 import BeautifulSoup
 from bs4.element import ResultSet
 
-from typing import Iterable
+from typing import Iterable, Callable, Any
+from threading import Thread
 
 NAME_SUFFIXES = ['jr.', 'iii', 'sr.']
+
+
+def chunk_iter(count: int, iterable: Iterable):
+    iterator = iter(iterable)
+    items = []
+
+    try:
+        while True:
+            items.append(next(iterator))
+            if len(items) >= count:
+                yield items
+                items = []
+    except StopIteration:
+        yield items
+
+
+def stepped_limited_multithread(functions: Iterable[Callable[[Any], None]], args: Iterable = (), kwargs: dict = None, limit=10):
+    if kwargs is None:
+        kwargs = dict()
+
+    for function_chunk in chunk_iter(limit, functions):
+        current_threads = []
+        for func in function_chunk:
+            new_thread = Thread(target=func, args=args, kwargs=kwargs)
+            new_thread.start()
+            current_threads.append(new_thread)
+
+        for thread in current_threads:
+            thread.join()
 
 
 def split_name(full_name: str, name_suffixes: Iterable[str] = None) -> (str, str):
