@@ -8,7 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 from bs4.element import ResultSet
 
-from typing import Iterable, Callable, Any
+from typing import Iterable, Callable, Any, Optional
 from threading import Thread
 
 NAME_SUFFIXES = ['jr.', 'iii', 'sr.']
@@ -29,7 +29,7 @@ def chunk_iterator(count: int, iterable: Iterable):
 
 
 def stepped_limited_multithread(functions: Iterable[Callable[[Any], None]],
-                                args: Iterable = (), kwargs: dict = None, limit: int = 10) -> None:
+                                args: Iterable = (), kwargs: Optional[dict] = None, limit: int = 10) -> None:
     if kwargs is None:
         kwargs = dict()
 
@@ -44,7 +44,7 @@ def stepped_limited_multithread(functions: Iterable[Callable[[Any], None]],
             thread.join()
 
 
-def split_name(full_name: str, name_suffixes: Iterable[str] = None) -> (str, str):
+def split_name(full_name: str, name_suffixes: Optional[Iterable[str]] = None) -> (str, str):
     """Return the estimated first and last name as a tuple"""
     if name_suffixes is None:
         name_suffixes = NAME_SUFFIXES
@@ -58,7 +58,7 @@ def split_name(full_name: str, name_suffixes: Iterable[str] = None) -> (str, str
 
 
 # noinspection GrazieInspection
-def tag_iterator(url: str, args: Iterable = (), kwargs: dict = None) -> ResultSet:
+def tag_iterator(url: str, args: Iterable = (), kwargs: Optional[dict] = None) -> ResultSet:
     """
     Return an iterable of the specified found tags in the html found at url
     Provided args and kwargs are directly passed as if in a BeautifulSoup.find_all function

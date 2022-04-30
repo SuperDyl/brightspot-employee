@@ -20,9 +20,7 @@ from bs4.element import Tag as BeautifulSoup_Tag
 import requests
 
 from contextlib import suppress
-from typing import Iterable, List, Union, NamedTuple
-from collections import namedtuple
-from typing import Iterable, List, Union, Optional
+from typing import Iterable, List, Union, Optional, NamedTuple
 from os import path, makedirs, PathLike
 from pathlib import Path
 
