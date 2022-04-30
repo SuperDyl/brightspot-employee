@@ -21,7 +21,7 @@ import requests
 
 from contextlib import suppress
 from collections import namedtuple
-from typing import Iterable, List, Union
+from typing import Iterable, List, Union, Optional
 from os import path, makedirs
 from pathlib import Path
 
@@ -141,14 +141,24 @@ class Professor:
     def __repr__(self) -> str:
         return str(self)
 
-    def download_photo(self, file_path: path) -> None:
+    def download_photo(self, dir_path: path, file_name: Optional[str] = None) -> None:
+        """
+        Download full-resolution photo from page_url.
+
+        :param dir_path: : location to store the image
+        :param file_name: : name to give the image. If blank, will be saved as full_name.[jpg/png]
+        :return: None
+        """
         tag = tag_iterator(self.page_url, args=('meta',), kwargs={'property': 'og:image:url'})
         image_url = tag[0]['content']
         img_request = requests.get(image_url)
 
-        parent_dir = Path(file_path).parent.absolute()
-        makedirs(parent_dir, exist_ok=True)
-        with open(file_path, 'wb') as file:
+        if file_name is None:
+            file_name = self.full_name + image_url[-4:]
+
+        dir_path = Path(dir_path)
+        makedirs(dir_path, exist_ok=True)
+        with open(path.join(dir_path, file_name), 'wb') as file:
             for chunk in img_request.iter_content():
                 file.write(chunk)
 

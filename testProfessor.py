@@ -23,7 +23,7 @@ class TestProfessor(unittest.TestCase):
         self.assertEqual(a, b)
 
     def test_download_photo(self):
-        self.all_profs[0].download_photo('pics/'+self.all_profs[0].full_name+'.jpg')
+        self.all_profs[0].download_photo('pics')
 
 
 if __name__ == '__main__':

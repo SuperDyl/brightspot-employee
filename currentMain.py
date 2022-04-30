@@ -21,7 +21,7 @@ from professor import Professor
 
 if __name__ == "__main__":
     all_profs = Professor.from_website()
-    all_profs[0].download_photo('pics/'+all_profs[0].full_name+'.jpg')
+    all_profs[0].download_photo('pics')
 
     # print(rm.Room('JSB', '3', '125', 'H'))
     pass
