@@ -21,7 +21,7 @@ from bs4.element import Tag as BeautifulSoup_Tag
 from contextlib import suppress
 from collections import namedtuple
 from typing import Iterable, List, Union
-from os import path
+from os import path, PathLike
 
 RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
 
@@ -139,7 +139,7 @@ class Professor:
     def __repr__(self) -> str:
         return str(self)
 
-    def download_photo(self, file_path: path) -> None:
+    def download_photo(self, file_path: PathLike) -> None:
         pass
 
     @property
@@ -189,7 +189,7 @@ class Professor:
                    kwargs.job_title)
 
     @staticmethod
-    def to_csv(file_path: path, professors: Iterable['Professor']) -> None:
+    def to_csv(file_path: PathLike, professors: Iterable['Professor']) -> None:
         """
         Create a comma-seperated-values file at file_path.
 
@@ -200,7 +200,7 @@ class Professor:
         dataframe.to_csv(file_path)
 
     @staticmethod
-    def from_csv(file_path: path) -> List['Professor']:
+    def from_csv(file_path: PathLike) -> List['Professor']:
         """
         Create a list of Professor instances from a proper csv file.
         The csv file must contain every header/column that Professor uses for its attributes
