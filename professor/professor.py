@@ -7,8 +7,8 @@ ProfessorProcessor - Functions used to get Brightspot employee data.
 
 Constants:
 RELIGION_DIR_URL - url for Religious Education at BYU
-PROFESSOR_ATTRS - Named tuple for expected fields in a named tuple for a Professor instance
-ALT_PROFESSOR_ATTRS - Named tuple for alternate expected fields in a named tuple for a Professor instance
+ProfessorAttributes - Expected fields in a named tuple for a Professor instance
+AlternateProfessorAttributes - Alternate expected fields in a named tuple for a Professor instance
 
 """
 
@@ -19,19 +19,29 @@ from pandas import DataFrame, read_csv
 from bs4.element import Tag as BeautifulSoup_Tag
 
 from contextlib import suppress
-from collections import namedtuple
-from typing import Iterable, List, Union
-from os import path, PathLike
+from typing import Iterable, List, Union, NamedTuple
+from os import PathLike
 
 RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
 
-PROFESSOR_ATTRS = namedtuple('PROFESSOR_ATTRS',
-                             ('first_name', 'last_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
-                             )
 
-ALT_PROFESSOR_ATTRS = namedtuple('ALT_PROFESSOR_ATTRS',
-                                 ('full_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
-                                 )
+class ProfessorAttributes(NamedTuple):
+    first_name: str
+    last_name: str
+    room: Union[Room, str]
+    page_url: str
+    telephone: str
+    department: str
+    job_title: str
+
+
+class AlternateProfessorAttributes(NamedTuple):
+    full_name: str
+    room: Union[Room, str]
+    page_url: str
+    telephone: str
+    department: str
+    job_title: str
 
 
 class ProfessorProcessor:
@@ -168,7 +178,7 @@ class Professor:
                    cls.processor.process_job_title(tag))
 
     @classmethod
-    def from_named_tuple(cls, kwargs: Union[PROFESSOR_ATTRS, ALT_PROFESSOR_ATTRS]) -> 'Professor':
+    def from_named_tuple(cls, kwargs: Union[ProfessorAttributes, AlternateProfessorAttributes]) -> 'Professor':
         """
         Create a Professor using a NamedTuple.
 
