@@ -7,8 +7,8 @@ ProfessorProcessor - Functions used to get Brightspot employee data.
 
 Constants:
 RELIGION_DIR_URL - url for Religious Education at BYU
-PROFESSOR_ATTRS - Named tuple for expected fields in a named tuple for a Professor instance
-ALT_PROFESSOR_ATTRS - Named tuple for alternate expected fields in a named tuple for a Professor instance
+ProfessorAttributes - Expected fields in a named tuple for a Professor instance
+AlternateProfessorAttributes - Alternate expected fields in a named tuple for a Professor instance
 
 """
 
@@ -20,20 +20,32 @@ from bs4.element import Tag as BeautifulSoup_Tag
 import requests
 
 from contextlib import suppress
+from typing import Iterable, List, Union, NamedTuple
 from collections import namedtuple
 from typing import Iterable, List, Union, Optional
-from os import path, makedirs
+from os import path, makedirs, PathLike
 from pathlib import Path
 
 RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
 
-PROFESSOR_ATTRS = namedtuple('PROFESSOR_ATTRS',
-                             ('first_name', 'last_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
-                             )
 
-ALT_PROFESSOR_ATTRS = namedtuple('ALT_PROFESSOR_ATTRS',
-                                 ('full_name', 'room', 'page_url', 'telephone', 'department', 'job_title')
-                                 )
+class ProfessorAttributes(NamedTuple):
+    first_name: str
+    last_name: str
+    room: Union[Room, str]
+    page_url: str
+    telephone: str
+    department: str
+    job_title: str
+
+
+class AlternateProfessorAttributes(NamedTuple):
+    full_name: str
+    room: Union[Room, str]
+    page_url: str
+    telephone: str
+    department: str
+    job_title: str
 
 
 class ProfessorProcessor:
@@ -189,7 +201,7 @@ class Professor:
                    cls.processor.process_job_title(tag))
 
     @classmethod
-    def from_named_tuple(cls, kwargs: Union[PROFESSOR_ATTRS, ALT_PROFESSOR_ATTRS]) -> 'Professor':
+    def from_named_tuple(cls, kwargs: Union[ProfessorAttributes, AlternateProfessorAttributes]) -> 'Professor':
         """
         Create a Professor using a NamedTuple.
 
@@ -210,7 +222,7 @@ class Professor:
                    kwargs.job_title)
 
     @staticmethod
-    def to_csv(file_path: path, professors: Iterable['Professor']) -> None:
+    def to_csv(file_path: PathLike, professors: Iterable['Professor']) -> None:
         """
         Create a comma-seperated-values file at file_path.
 
@@ -218,10 +230,10 @@ class Professor:
         :param professors: Professor objects to be included in the file
         """
         dataframe = DataFrame.from_records((p.__dict__ for p in professors))
-        dataframe.to_csv(file_path)
+        dataframe.to_csv(Path(file_path))
 
     @staticmethod
-    def from_csv(file_path: Union[Path, str]) -> List['Professor']:
+    def from_csv(file_path: PathLike) -> List['Professor']:
         """
         Create a list of Professor instances from a proper csv file.
         The csv file must contain every header/column that Professor uses for its attributes
@@ -229,7 +241,7 @@ class Professor:
         :param file_path: : path to load the csv file from
         :return: list of Professor instances from the file's data
         """
-        dataframe = read_csv(file_path, keep_default_na=False)
+        dataframe = read_csv(Path(file_path), keep_default_na=False)
         return [Professor.from_named_tuple(row) for row in dataframe.itertuples()]
 
     @staticmethod
@@ -244,7 +256,7 @@ class Professor:
         return [Professor.from_html_tag(tag) for tag in tag_iterator(url)]
 
     @staticmethod
-    def download_all_photos(professors: Iterable['Professor'], dir_path: Union[Path, str],
+    def download_all_photos(professors: Iterable['Professor'], dir_path: PathLike,
                             thread_limit: int = 5) -> None:
         """
         Download each professor's photo and save it in dir_path using the default naming
