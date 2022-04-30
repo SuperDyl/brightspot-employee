@@ -17,11 +17,13 @@ from .tools import remove_prefix, tag_iterator, split_name
 
 from pandas import DataFrame, read_csv
 from bs4.element import Tag as BeautifulSoup_Tag
+import requests
 
 from contextlib import suppress
 from collections import namedtuple
 from typing import Iterable, List, Union
-from os import path
+from os import path, makedirs
+from pathlib import Path
 
 RELIGION_DIR_URL = 'https://religion.byu.edu/directory'
 
@@ -140,7 +142,15 @@ class Professor:
         return str(self)
 
     def download_photo(self, file_path: path) -> None:
-        pass
+        tag = tag_iterator(self.page_url, args=('meta',), kwargs={'property': 'og:image:url'})
+        image_url = tag[0]['content']
+        img_request = requests.get(image_url)
+
+        parent_dir = Path(file_path).parent.absolute()
+        makedirs(parent_dir, exist_ok=True)
+        with open(file_path, 'wb') as file:
+            for chunk in img_request.iter_content():
+                file.write(chunk)
 
     @property
     def full_name(self) -> str:

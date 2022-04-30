@@ -17,9 +17,13 @@ import professor.room as rm
 # def get_items(funcs: iter):
 #     return [tuple(call_each(funcs, tag)) for tag in tag_iterator3()]
 
+from professor import Professor
 
 if __name__ == "__main__":
-    print(rm.Room('JSB', '3', '125', 'H'))
+    all_profs = Professor.from_website()
+    all_profs[0].download_photo('pics/'+all_profs[0].full_name+'.jpg')
+
+    # print(rm.Room('JSB', '3', '125', 'H'))
     pass
     # items = '\n'.join('###'.join((str(y) for y in x)) for x in get_items((process_first_name, process_last_name,
     #                                                                       process_job_title, process_room)))

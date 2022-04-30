@@ -14,7 +14,7 @@ from threading import Thread
 NAME_SUFFIXES = ['jr.', 'iii', 'sr.']
 
 
-def chunk_iter(count: int, iterable: Iterable):
+def chunk_iterator(count: int, iterable: Iterable):
     iterator = iter(iterable)
     items = []
 
@@ -32,7 +32,7 @@ def stepped_limited_multithread(functions: Iterable[Callable[[Any], None]], args
     if kwargs is None:
         kwargs = dict()
 
-    for function_chunk in chunk_iter(limit, functions):
+    for function_chunk in chunk_iterator(limit, functions):
         current_threads = []
         for func in function_chunk:
             new_thread = Thread(target=func, args=args, kwargs=kwargs)
@@ -57,7 +57,7 @@ def split_name(full_name: str, name_suffixes: Iterable[str] = None) -> (str, str
 
 
 # noinspection GrazieInspection
-def tag_iterator(url: str, *args, **kwargs) -> ResultSet:
+def tag_iterator(url: str, args: Iterable = (), kwargs: dict = None) -> ResultSet:
     """
     Return an iterable of the specified found tags in the html found at url
     Provided args and kwargs are directly passed as if in a BeautifulSoup.find_all function
@@ -68,7 +68,7 @@ def tag_iterator(url: str, *args, **kwargs) -> ResultSet:
     """
     if not args:
         args = 'div',
-    if not kwargs:
+    if kwargs is None:
         kwargs = {'class_': 'ListVerticalImage-items-item'}
 
     with requests.get(url) as request:
