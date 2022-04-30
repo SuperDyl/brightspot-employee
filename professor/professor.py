@@ -13,7 +13,7 @@ ALT_PROFESSOR_ATTRS - Named tuple for alternate expected fields in a named tuple
 """
 
 from .room import Room
-from .tools import remove_prefix, tag_iterator, split_name
+from .tools import remove_prefix, tag_iterator, split_name, stepped_limited_multithread
 
 from pandas import DataFrame, read_csv
 from bs4.element import Tag as BeautifulSoup_Tag
@@ -154,7 +154,8 @@ class Professor:
         img_request = requests.get(image_url)
 
         if file_name is None:
-            file_name = self.full_name + image_url[-4:]
+            file_extension_buffer = 10
+            file_name = self.full_name + Path(image_url[-file_extension_buffer:]).suffix
 
         dir_path = Path(dir_path)
         makedirs(dir_path, exist_ok=True)
@@ -220,7 +221,7 @@ class Professor:
         dataframe.to_csv(file_path)
 
     @staticmethod
-    def from_csv(file_path: path) -> List['Professor']:
+    def from_csv(file_path: Union[Path, str]) -> List['Professor']:
         """
         Create a list of Professor instances from a proper csv file.
         The csv file must contain every header/column that Professor uses for its attributes
@@ -241,3 +242,18 @@ class Professor:
         :return: list of Professor instances from the url's data
         """
         return [Professor.from_html_tag(tag) for tag in tag_iterator(url)]
+
+    @staticmethod
+    def download_all_photos(professors: Iterable['Professor'], dir_path: Union[Path, str],
+                            thread_limit: int = 5) -> None:
+        """
+        Download each professor's photo and save it in dir_path using the default naming
+        Uses multithreading
+        Default naming uses Professor.full_name and the original file extension
+
+        :param professors: : all professors to download photos for. Each must have a page_url
+        :param dir_path: directory to store all the photos in
+        :param thread_limit: number of photos to download simultaneously
+        """
+        functions = (prof.download_photo for prof in professors)
+        stepped_limited_multithread(functions, args=(dir_path,), limit=thread_limit)

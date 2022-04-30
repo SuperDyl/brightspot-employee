@@ -28,7 +28,8 @@ def chunk_iterator(count: int, iterable: Iterable):
         yield items
 
 
-def stepped_limited_multithread(functions: Iterable[Callable[[Any], None]], args: Iterable = (), kwargs: dict = None, limit=10):
+def stepped_limited_multithread(functions: Iterable[Callable[[Any], None]],
+                                args: Iterable = (), kwargs: dict = None, limit: int = 10) -> None:
     if kwargs is None:
         kwargs = dict()
 
