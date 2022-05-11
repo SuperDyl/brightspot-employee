@@ -13,7 +13,7 @@ AlternateProfessorAttributes - Alternate expected fields in a named tuple for a 
 """
 
 from .room import Room
-from .tools import remove_prefix, tag_iterator, split_name, stepped_limited_multithread
+from . import util
 
 from pandas import DataFrame, read_csv
 from bs4.element import Tag as BeautifulSoup_Tag
@@ -60,7 +60,7 @@ class ProfessorProcessor:
 
     """
 
-    NAME_SUFFIXES = ['jr.', 'iii', 'sr.']
+    NAME_SUFFIXES = util.NAME_SUFFIXES[:]
     NON_EXISTENT = ''
 
     @staticmethod
@@ -86,7 +86,7 @@ class ProfessorProcessor:
         if telephone_tag is None:
             return ProfessorProcessor.NON_EXISTENT
         phone_ref = telephone_tag.find('a')['href']
-        return remove_prefix(phone_ref, 'tel:')
+        return util.remove_prefix(phone_ref, 'tel:')
 
     @staticmethod
     def process_page_url(tag: BeautifulSoup_Tag) -> str:
@@ -122,7 +122,7 @@ class ProfessorProcessor:
     def process_split_name(tag: BeautifulSoup_Tag) -> (str, str):
         """Return the estimated first and last names from the first employee name found in tag"""
         full_name = ProfessorProcessor.process_full_name(tag)
-        return split_name(full_name, ProfessorProcessor.NAME_SUFFIXES)
+        return util.split_name(full_name, ProfessorProcessor.NAME_SUFFIXES)
 
 
 class Professor:
@@ -159,7 +159,7 @@ class Professor:
         :param file_name: : name to give the image. If blank, will be saved as full_name.[jpg/png]
         :return: None
         """
-        tag = tag_iterator(self.page_url, args=('meta',), kwargs={'property': 'og:image:url'})
+        tag = util.tag_iterator(self.page_url, args=('meta',), kwargs={'property': 'og:image:url'})
         image_url = tag[0]['content']
         img_request = requests.get(image_url)
 
@@ -179,7 +179,7 @@ class Professor:
 
     @full_name.setter
     def full_name(self, new_full_name):
-        self.first_name, self.last_name = split_name(new_full_name, name_suffixes=self.processor.NAME_SUFFIXES)
+        self.first_name, self.last_name = util.split_name(new_full_name, name_suffixes=self.processor.NAME_SUFFIXES)
 
     @classmethod
     def from_html_tag(cls, tag: BeautifulSoup_Tag) -> 'Professor':
@@ -208,7 +208,7 @@ class Professor:
         """
         room_address = kwargs.room if isinstance(kwargs.room, Room) else Room.from_string(kwargs.room)
         if not ('first_name' in kwargs._fields and 'last_name' in kwargs._fields):
-            first_name, last_name = split_name(kwargs.full_name, cls.processor.NAME_SUFFIXES)
+            first_name, last_name = util.split_name(kwargs.full_name, cls.processor.NAME_SUFFIXES)
         else:
             first_name, last_name = kwargs.first_name, kwargs.last_name
         return cls(first_name,
@@ -251,7 +251,7 @@ class Professor:
         :param url: : webpage to pull all data from
         :return: list of Professor instances from the url's data
         """
-        return [Professor.from_html_tag(tag) for tag in tag_iterator(url)]
+        return [Professor.from_html_tag(tag) for tag in util.tag_iterator(url)]
 
     @staticmethod
     def download_all_photos(professors: Iterable['Professor'], dir_path: PathLike,
@@ -266,4 +266,4 @@ class Professor:
         :param thread_limit: number of photos to download simultaneously
         """
         functions = (prof.download_photo for prof in professors)
-        stepped_limited_multithread(functions, args=(dir_path,), limit=thread_limit)
+        util.stepped_limited_multithread(functions, args=(dir_path,), limit=thread_limit)
