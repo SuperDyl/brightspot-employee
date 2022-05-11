@@ -3,7 +3,7 @@ Processes and stores data about Professors in BYU's Religious Education
 
 Classes:
 Professor - Store data for a professor in BYU's Religious Education.
-ProfessorProcessor - Functions used to get Brightspot employee data.
+ProfessorProcessor - Functions used to get BrightSpot employee data.
 
 Constants:
 RELIGION_DIR_URL - url for Religious Education at BYU
@@ -34,11 +34,11 @@ AlternateProfessorAttributes = AlternateEmployeeAttributes
 
 class ProfessorProcessor(EmployeeProcessor):
     """
-    Functions used to get Brightspot employee data.
+    Functions used to get employee data for Religious Education faculty and staff.
 
     This class assumes html data comes from RELIGION_DIR_URL
     Subclass for use with Professor by setting Professor.processor to a subclass of ProfessorProcessor
-    or the processor attribute of a sublass of Professor
+    or the processor attribute of a subclass of Professor
 
     Constants:
     NAME_SUFFIXES - name suffixes (such as jr.) for splitting first/last names
@@ -46,69 +46,34 @@ class ProfessorProcessor(EmployeeProcessor):
 
     """
 
-    NAME_SUFFIXES = util.NAME_SUFFIXES[:]
-    NON_EXISTENT = ''
+    DEFAULT_CONTAINER = 'PromoVerticalImage'
 
     @staticmethod
-    def process_job_title(tag: BeautifulSoup_Tag) -> str:
+    def process_job_title(tag: BeautifulSoup_Tag, container: str = DEFAULT_CONTAINER) -> str:
         """Return the first job title found in tag"""
-        job_title = tag.find(class_='PromoVerticalImage-jobTitle')
-        if job_title is None:
-            return ProfessorProcessor.NON_EXISTENT
-        return job_title.text
+        return EmployeeProcessor.process_job_title(tag, container)
 
     @staticmethod
-    def process_department(tag: BeautifulSoup_Tag) -> str:
+    def process_department(tag: BeautifulSoup_Tag, container: str = DEFAULT_CONTAINER) -> str:
         """Return the first department found in tag"""
-        department = tag.find(class_='PromoVerticalImage-groups')
-        if department is None:
-            return ProfessorProcessor.NON_EXISTENT
-        return department.text
+        return EmployeeProcessor.process_department(tag, container)
 
     @staticmethod
-    def process_telephone(tag: BeautifulSoup_Tag) -> str:
+    def process_telephone(tag: BeautifulSoup_Tag, container: str = DEFAULT_CONTAINER) -> str:
         """Return the first telephone number found in tag"""
-        telephone_tag = tag.find(class_='PromoVerticalImage-phoneNumber')
-        if telephone_tag is None:
-            return ProfessorProcessor.NON_EXISTENT
-        phone_ref = telephone_tag.find('a')['href']
-        return util.remove_prefix(phone_ref, 'tel:')
+        return EmployeeProcessor.process_telephone(tag, container)
 
-    @staticmethod
-    def process_page_url(tag: BeautifulSoup_Tag) -> str:
-        """Return the first hyperlinked url found in tag"""
-        return tag.find(class_="Link")['href']
+    process_page_url = EmployeeProcessor.process_page_url
 
-    @staticmethod
-    def process_room(tag: BeautifulSoup_Tag) -> Room:
-        """Return the first room number found in tag"""
-        with suppress(AttributeError):
-            room_text = tag.find('p').text.strip()
-            return Room.from_string(room_text)
-        return Room('', '', '')
+    process_room = EmployeeProcessor.process_room
 
-    @staticmethod
-    def process_first_name(tag: BeautifulSoup_Tag) -> str:
-        """Return an estimation of the first name from tag"""
-        first_name, _ = ProfessorProcessor.process_split_name(tag)
-        return first_name
+    process_first_name = EmployeeProcessor.process_first_name
 
-    @staticmethod
-    def process_last_name(tag: BeautifulSoup_Tag) -> str:
-        """Return an estimation of the last name from tag"""
-        _, last_name = ProfessorProcessor.process_split_name(tag)
-        return last_name
+    process_last_name = EmployeeProcessor.process_last_name
 
-    @staticmethod
-    def process_full_name(tag: BeautifulSoup_Tag) -> str:
-        """Return the first employee name found in tag"""
-        return tag.find('a', attrs={'data-cms-ai': '0'})['aria-label'].replace(u'\xa0', u' ')
+    process_full_name = EmployeeProcessor.process_full_name
 
-    @staticmethod
-    def process_split_name(tag: BeautifulSoup_Tag) -> (str, str):
-        """Return the estimated first and last names from the first employee name found in tag"""
-        full_name = ProfessorProcessor.process_full_name(tag)
-        return util.split_name(full_name, ProfessorProcessor.NAME_SUFFIXES)
+    process_split_name = EmployeeProcessor.process_split_name
 
 
 class Professor(Employee):
@@ -160,24 +125,19 @@ class Professor(Employee):
     # @full_name.setter
     # def full_name(self, new_full_name):
     #     self.first_name, self.last_name = util.split_name(new_full_name, name_suffixes=self.processor.NAME_SUFFIXES)
-    #
-    # @classmethod
-    # def from_html_tag(cls, tag: BeautifulSoup_Tag) -> 'Professor':
-    #     """
-    #     Create a Professor using a BeautifulSoup tag object.
-    #
-    #     :param tag: : BeautifulSoup_Tag containing exactly one professor's data
-    #     :return: Professor instance
-    #     """
-    #     first_name, last_name = cls.processor.process_split_name(tag)
-    #     return cls(first_name,
-    #                last_name,
-    #                cls.processor.process_room(tag),
-    #                cls.processor.process_page_url(tag),
-    #                cls.processor.process_telephone(tag),
-    #                cls.processor.process_department(tag),
-    #                cls.processor.process_job_title(tag))
-    #
+
+    @classmethod
+    def from_html_tag(cls, tag: BeautifulSoup_Tag, container: str = ProfessorProcessor.DEFAULT_CONTAINER)\
+            -> 'Professor':  # TODO: fix return type
+        """
+        Create a Professor using a BeautifulSoup tag object.
+
+        :param tag: : BeautifulSoup_Tag containing exactly one professor's data
+        :param container: : name of container used to separate employees on BrightSpot page
+        :return: Professor instance
+        """
+        return Employee.from_html_tag(tag, container)
+
     # @classmethod
     # def from_named_tuple(cls, kwargs: Union[ProfessorAttributes, AlternateProfessorAttributes]) -> 'Employee':
     #     """
@@ -223,15 +183,17 @@ class Professor(Employee):
     #     return [Professor.from_named_tuple(row) for row in dataframe.itertuples()]
 
     @staticmethod
-    def from_website(url: str = RELIGION_DIR_URL) -> List[Employee]:
+    def from_website(url: str = RELIGION_DIR_URL, container: str = ProfessorProcessor.DEFAULT_CONTAINER)\
+            -> List[Employee]:
         """
         Return a list of Employee instances using data from the website at url.
         The url is only guaranteed to work at RELIGION_DIR_URL, the default url
 
         :param url: : webpage to pull all data from
+        :param container: : name of container used to separate employees on BrightSpot page
         :return: list of Employee instances from the url's data
         """
-        return Employee.from_website(url)
+        return Employee.from_website(url, Professor.processor.DEFAULT_CONTAINER)
 
     # @staticmethod
     # def download_all_photos(professors: Iterable['Professor'], dir_path: PathLike,

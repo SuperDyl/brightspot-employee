@@ -2,12 +2,12 @@
 Processes and stores data about Employees on BrightSpot pages
 
 Classes:
-Employee - Store data for a employee.
-EmployeeProcessor - Functions used to get Brightspot employee data.
+Employee - Store data for an employee.
+EmployeeProcessor - Functions used to get BrightSpot employee data.
 
 Constants:
-EmployeeAttributes - Expected fields in a named tuple for a Employee instance
-AlternateEmployeeAttributes - Alternate expected fields in a named tuple for a Employee instance
+EmployeeAttributes - Expected fields in a named tuple for an Employee instance
+AlternateEmployeeAttributes - Alternate expected fields in a named tuple for an Employee instance
 
 """
 
@@ -45,11 +45,11 @@ class AlternateEmployeeAttributes(NamedTuple):
 
 class EmployeeProcessor:
     """
-    Functions used to get Brightspot employee data.
+    Functions used to get BrightSpot employee data.
 
     This class assumes html data comes from RELIGION_DIR_URL
     Subclass for use with Employee by setting Employee.processor to a subclass of EmployeeProcessor
-    or the processor attribute of a sublass of Employee
+    or the processor attribute of a subclass of Employee
 
     Constants:
     NAME_SUFFIXES - name suffixes (such as jr.) for splitting first/last names
@@ -61,25 +61,25 @@ class EmployeeProcessor:
     NON_EXISTENT = ''
 
     @staticmethod
-    def process_job_title(tag: BeautifulSoup_Tag) -> str:
+    def process_job_title(tag: BeautifulSoup_Tag, container: str) -> str:
         """Return the first job title found in tag"""
-        job_title = tag.find(class_='PromoVerticalImage-jobTitle')
+        job_title = tag.find(class_=(container + '-jobTitle'))
         if job_title is None:
             return EmployeeProcessor.NON_EXISTENT
         return job_title.text
 
     @staticmethod
-    def process_department(tag: BeautifulSoup_Tag) -> str:
+    def process_department(tag: BeautifulSoup_Tag, container: str) -> str:
         """Return the first department found in tag"""
-        department = tag.find(class_='PromoVerticalImage-groups')
+        department = tag.find(class_=(container + '-groups'))
         if department is None:
             return EmployeeProcessor.NON_EXISTENT
         return department.text
 
     @staticmethod
-    def process_telephone(tag: BeautifulSoup_Tag) -> str:
+    def process_telephone(tag: BeautifulSoup_Tag, container: str) -> str:
         """Return the first telephone number found in tag"""
-        telephone_tag = tag.find(class_='PromoVerticalImage-phoneNumber')
+        telephone_tag = tag.find(class_=(container + '-phoneNumber'))
         if telephone_tag is None:
             return EmployeeProcessor.NON_EXISTENT
         phone_ref = telephone_tag.find('a')['href']
@@ -179,11 +179,12 @@ class Employee:
         self.first_name, self.last_name = util.split_name(new_full_name, name_suffixes=self.processor.NAME_SUFFIXES)
 
     @classmethod
-    def from_html_tag(cls, tag: BeautifulSoup_Tag) -> 'Employee':
+    def from_html_tag(cls, tag: BeautifulSoup_Tag, container: str) -> 'Employee':
         """
-        Create a Employee using a BeautifulSoup tag object.
+        Create an Employee using a BeautifulSoup tag object.
 
         :param tag: : BeautifulSoup_Tag containing exactly one professor's data
+        :param container: name of container used to separate employees on BrightSpot page
         :return: Employee instance
         """
         first_name, last_name = cls.processor.process_split_name(tag)
@@ -191,14 +192,14 @@ class Employee:
                    last_name,
                    cls.processor.process_room(tag),
                    cls.processor.process_page_url(tag),
-                   cls.processor.process_telephone(tag),
-                   cls.processor.process_department(tag),
-                   cls.processor.process_job_title(tag))
+                   cls.processor.process_telephone(tag, container),
+                   cls.processor.process_department(tag, container),
+                   cls.processor.process_job_title(tag, container))
 
     @classmethod
     def from_named_tuple(cls, kwargs: Union[EmployeeAttributes, AlternateEmployeeAttributes]) -> 'Employee':
         """
-        Create a Employee using a NamedTuple.
+        Create an Employee using a NamedTuple.
 
         :param kwargs: : data to fill a new Employee instance
         :return: Employee instance
@@ -217,7 +218,7 @@ class Employee:
                    kwargs.job_title)
 
     @staticmethod
-    def to_csv(file_path: PathLike, employees: Iterable['Employee']) -> None:
+    def to_csv(file_path: Union[PathLike, str], employees: Iterable['Employee']) -> None:
         """
         Create a comma-seperated-values file at file_path.
 
@@ -228,7 +229,7 @@ class Employee:
         dataframe.to_csv(Path(file_path))
 
     @staticmethod
-    def from_csv(file_path: PathLike) -> List['Employee']:
+    def from_csv(file_path: Union[PathLike, str]) -> List['Professor']:
         """
         Create a list of Employee instances from a proper csv file.
         The csv file must contain every header/column that Employee uses for its attributes
@@ -240,15 +241,16 @@ class Employee:
         return [Employee.from_named_tuple(row) for row in dataframe.itertuples()]
 
     @staticmethod
-    def from_website(url: str) -> List['Employee']:
+    def from_website(url: str, container: str) -> List['Employee']:
         """
         Return a list of Employee instances using data from the website at url.
         The url is only guaranteed to work at RELIGION_DIR_URL, the default url
 
         :param url: : webpage to pull all data from
+        :param container: : name of container used to separate employees on BrightSpot page
         :return: list of Employee instances from the url's data
         """
-        return [Employee.from_html_tag(tag) for tag in util.tag_iterator(url)]
+        return [Employee.from_html_tag(tag, container) for tag in util.tag_iterator(url)]
 
     @staticmethod
     def download_all_photos(professors: Iterable['Employee'], dir_path: PathLike,
