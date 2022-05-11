@@ -1,4 +1,4 @@
-from professor import Professor, tag_iterator
+from src.professor import Professor
 
 from tempfile import NamedTemporaryFile
 import unittest
