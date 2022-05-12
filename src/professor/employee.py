@@ -190,12 +190,11 @@ class Employee:
         self.first_name, self.last_name = util.split_name(new_full_name, name_suffixes=self.processor.NAME_SUFFIXES)
 
     @classmethod
-    def from_html_tag(cls: Type[E], tag: BeautifulSoup_Tag, container: str) -> Type[E]:
+    def from_html_tag(cls: Type[E], tag: BeautifulSoup_Tag) -> Type[E]:
         """
         Create an Employee using a BeautifulSoup tag object.
 
         :param tag: : BeautifulSoup_Tag containing exactly one professor's data
-        :param container: name of container used to separate employees on BrightSpot page
         :return: Employee instance
         """
         first_name, last_name = cls.processor.process_split_name(tag)
@@ -265,7 +264,7 @@ class Employee:
         :param url: : webpage to pull all data from
         :return: list of Employee instances from the url's data
         """
-        return [cls.from_html_tag(tag, cls.processor.container) for tag in util.tag_iterator(url)]
+        return [cls.from_html_tag(tag) for tag in util.tag_iterator(url)]
 
     @staticmethod
     def download_all_photos(professors: Iterable['Employee'], dir_path: PathLike,

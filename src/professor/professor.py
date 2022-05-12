@@ -54,16 +54,14 @@ class Professor(Employee):
         super().__init__(first_name, last_name, room_address, page_url, telephone, department, job_title)
 
     @classmethod
-    def from_html_tag(cls: Type[E], tag: BeautifulSoup_Tag, container: str = ProfessorProcessor.DEFAULT_CONTAINER)\
-            -> Type[E]:
+    def from_html_tag(cls: Type[E], tag: BeautifulSoup_Tag) -> Type[E]:
         """
         Create a Professor using a BeautifulSoup tag object.
 
         :param tag: : BeautifulSoup_Tag containing exactly one professor's data
-        :param container: : name of container used to separate employees on BrightSpot page
         :return: Professor instance
         """
-        return super().from_html_tag(tag, container)
+        return super().from_html_tag(tag)
 
     @classmethod
     def from_website(cls: Type[E], url: str = RELIGION_DIR_URL) -> List[Type[E]]:
