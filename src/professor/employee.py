@@ -19,7 +19,7 @@ from bs4.element import Tag as BeautifulSoup_Tag
 import requests
 
 from contextlib import suppress
-from typing import Iterable, List, Union, Optional, NamedTuple
+from typing import Iterable, List, Union, Optional, NamedTuple, TypeVar, Type
 from os import path, makedirs, PathLike
 from pathlib import Path
 
@@ -47,79 +47,90 @@ class EmployeeProcessor:
     """
     Functions used to get BrightSpot employee data.
 
-    This class assumes html data comes from RELIGION_DIR_URL
     Subclass for use with Employee by setting Employee.processor to a subclass of EmployeeProcessor
     or the processor attribute of a subclass of Employee
 
     Constants:
-    NAME_SUFFIXES - name suffixes (such as jr.) for splitting first/last names
-    NON_EXISTENT - value returned for most fields that blank
+    NAME_SUFFIXES - name suffixes (such as jr.) for splitting first/last names.
+    NON_EXISTENT - value returned for most fields that blank.
 
     """
 
     NAME_SUFFIXES = util.NAME_SUFFIXES[:]
     NON_EXISTENT = ''
 
-    @staticmethod
-    def process_job_title(tag: BeautifulSoup_Tag, container: str) -> str:
-        """Return the first job title found in tag"""
-        job_title = tag.find(class_=(container + '-jobTitle'))
+    def __init__(self, container: str):
+        self.container = container
+
+    def process_job_title(self, tag: BeautifulSoup_Tag) -> str:
+        """Return the first job title found in tag."""
+        job_title = tag.find(class_=(self.container + '-jobTitle'))
         if job_title is None:
-            return EmployeeProcessor.NON_EXISTENT
+            return self.NON_EXISTENT
         return job_title.text
 
-    @staticmethod
-    def process_department(tag: BeautifulSoup_Tag, container: str) -> str:
-        """Return the first department found in tag"""
-        department = tag.find(class_=(container + '-groups'))
+    def process_department(self, tag: BeautifulSoup_Tag) -> str:
+        """Return the first department found in tag."""
+        department = tag.find(class_=(self.container + '-groups'))
         if department is None:
-            return EmployeeProcessor.NON_EXISTENT
+            return self.NON_EXISTENT
         return department.text
 
-    @staticmethod
-    def process_telephone(tag: BeautifulSoup_Tag, container: str) -> str:
-        """Return the first telephone number found in tag"""
-        telephone_tag = tag.find(class_=(container + '-phoneNumber'))
+    def process_telephone(self, tag: BeautifulSoup_Tag) -> str:
+        """Return the first telephone number found in tag."""
+        telephone_tag = tag.find(class_=(self.container + '-phoneNumber'))
         if telephone_tag is None:
-            return EmployeeProcessor.NON_EXISTENT
+            return self.NON_EXISTENT
         phone_ref = telephone_tag.find('a')['href']
         return util.remove_prefix(phone_ref, 'tel:')
 
     @staticmethod
-    def process_page_url(tag: BeautifulSoup_Tag) -> str:
-        """Return the first hyperlinked url found in tag"""
+    def process_page_url_static(tag: BeautifulSoup_Tag) -> str:
+        """Return the first hyperlinked url found in tag, but static."""
         return tag.find(class_="Link")['href']
 
+    def process_page_url(self, tag: BeautifulSoup_Tag) -> str:
+        """Return the first hyperlinked url found in tag."""
+        return type(self).process_page_url_static(tag)
+
     @staticmethod
-    def process_room(tag: BeautifulSoup_Tag) -> Room:
-        """Return the first room number found in tag"""
+    def process_room_static(tag: BeautifulSoup_Tag) -> Room:
+        """Return the first room number found in tag, but static"""
         with suppress(AttributeError):
             room_text = tag.find('p').text.strip()
             return Room.from_string(room_text)
         return Room('', '', '')
 
-    @staticmethod
-    def process_first_name(tag: BeautifulSoup_Tag) -> str:
+    def process_room(self, tag: BeautifulSoup_Tag) -> Room:
+        """Return the first room number found in tag."""
+        return type(self).process_room_static(tag)
+
+    def process_first_name(self, tag: BeautifulSoup_Tag) -> str:
         """Return an estimation of the first name from tag"""
-        first_name, _ = EmployeeProcessor.process_split_name(tag)
+        first_name, _ = self.process_split_name(tag)
         return first_name
 
-    @staticmethod
-    def process_last_name(tag: BeautifulSoup_Tag) -> str:
+    def process_last_name(self, tag: BeautifulSoup_Tag) -> str:
         """Return an estimation of the last name from tag"""
-        _, last_name = EmployeeProcessor.process_split_name(tag)
+        _, last_name = self.process_split_name(tag)
         return last_name
 
     @staticmethod
-    def process_full_name(tag: BeautifulSoup_Tag) -> str:
-        """Return the first employee name found in tag"""
+    def process_full_name_static(tag: BeautifulSoup_Tag) -> str:
+        """Return the first employee name found in tag, but static."""
         return tag.find('a', attrs={'data-cms-ai': '0'})['aria-label'].replace(u'\xa0', u' ')
 
-    @staticmethod
-    def process_split_name(tag: BeautifulSoup_Tag) -> (str, str):
+    def process_full_name(self, tag: BeautifulSoup_Tag) -> str:
+        """Return the first employee name found in tag."""
+        return type(self).process_full_name_static(tag)
+
+    def process_split_name(self, tag: BeautifulSoup_Tag) -> (str, str):
         """Return the estimated first and last names from the first employee name found in tag"""
-        full_name = EmployeeProcessor.process_full_name(tag)
-        return util.split_name(full_name, EmployeeProcessor.NAME_SUFFIXES)
+        full_name = self.process_full_name(tag)
+        return util.split_name(full_name, self.NAME_SUFFIXES)
+
+
+E = TypeVar('E', bound='Employee')
 
 
 class Employee:
@@ -130,7 +141,7 @@ class Employee:
     processor - class used for processing all professor fields
     """
 
-    processor = EmployeeProcessor
+    processor = EmployeeProcessor('')
 
     def __init__(self, first_name: str, last_name: str, room_address: Room,
                  page_url: str, telephone: str, department: str, job_title: str):
@@ -179,7 +190,7 @@ class Employee:
         self.first_name, self.last_name = util.split_name(new_full_name, name_suffixes=self.processor.NAME_SUFFIXES)
 
     @classmethod
-    def from_html_tag(cls, tag: BeautifulSoup_Tag, container: str) -> 'Employee':
+    def from_html_tag(cls: Type[E], tag: BeautifulSoup_Tag, container: str) -> Type[E]:
         """
         Create an Employee using a BeautifulSoup tag object.
 
@@ -192,12 +203,13 @@ class Employee:
                    last_name,
                    cls.processor.process_room(tag),
                    cls.processor.process_page_url(tag),
-                   cls.processor.process_telephone(tag, container),
-                   cls.processor.process_department(tag, container),
-                   cls.processor.process_job_title(tag, container))
+                   cls.processor.process_telephone(tag),
+                   cls.processor.process_department(tag),
+                   cls.processor.process_job_title(tag)
+                   )
 
     @classmethod
-    def from_named_tuple(cls, kwargs: Union[EmployeeAttributes, AlternateEmployeeAttributes]) -> 'Employee':
+    def from_named_tuple(cls: Type[E], kwargs: Union[EmployeeAttributes, AlternateEmployeeAttributes]) -> Type[E]:
         """
         Create an Employee using a NamedTuple.
 
@@ -225,11 +237,15 @@ class Employee:
         :param file_path: : path to save the csv file to
         :param employees: Employee objects to be included in the file
         """
-        dataframe = DataFrame.from_records((p.__dict__ for p in employees))
+        dataframe = DataFrame.from_records((
+                                            {k: v
+                                                for k, v in p.__dict__.items()
+                                                if k in EmployeeAttributes._fields}
+                                            for p in employees))
         dataframe.to_csv(Path(file_path))
 
     @staticmethod
-    def from_csv(file_path: Union[PathLike, str]) -> List['Professor']:
+    def from_csv(file_path: Union[PathLike, str]) -> List[Type[E]]:
         """
         Create a list of Employee instances from a proper csv file.
         The csv file must contain every header/column that Employee uses for its attributes
@@ -240,17 +256,16 @@ class Employee:
         dataframe = read_csv(Path(file_path), keep_default_na=False)
         return [Employee.from_named_tuple(row) for row in dataframe.itertuples()]
 
-    @staticmethod
-    def from_website(url: str, container: str) -> List['Employee']:
+    @classmethod
+    def from_website(cls: Type[E], url: str) -> List[Type[E]]:
         """
         Return a list of Employee instances using data from the website at url.
         The url is only guaranteed to work at RELIGION_DIR_URL, the default url
 
         :param url: : webpage to pull all data from
-        :param container: : name of container used to separate employees on BrightSpot page
         :return: list of Employee instances from the url's data
         """
-        return [Employee.from_html_tag(tag, container) for tag in util.tag_iterator(url)]
+        return [cls.from_html_tag(tag, cls.processor.container) for tag in util.tag_iterator(url)]
 
     @staticmethod
     def download_all_photos(professors: Iterable['Employee'], dir_path: PathLike,
