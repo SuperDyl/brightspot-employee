@@ -2,8 +2,8 @@
 Processes and stores data about Employees on BrightSpot pages.
 
 Classes:
-Employee - Store data for an employee.
-EmployeeProcessor - Functions used to get BrightSpot employee data.
+Employee - Store data for an brightspot_employee.
+EmployeeProcessor - Functions used to get BrightSpot brightspot_employee data.
 
 Constants:
 EmployeeAttributes - Expected fields in a named tuple for an Employee instance
@@ -45,7 +45,7 @@ class AlternateEmployeeAttributes(NamedTuple):
 
 class EmployeeProcessor:
     """
-    Functions used to get BrightSpot employee data.
+    Functions used to get BrightSpot brightspot_employee data.
 
     Subclass for use with Employee by setting Employee.processor to a subclass of EmployeeProcessor
     or the processor attribute of a subclass of Employee
@@ -118,13 +118,13 @@ class EmployeeProcessor:
         return last_name
 
     def process_full_name(self, tag: BeautifulSoup_Tag, search_text: Optional[str] = NAME_SEARCH_TEXT) -> str:
-        """Return the first employee name found in tag."""
+        """Return the first brightspot_employee name found in tag."""
         if search_text is None:
             search_text = self.NAME_SEARCH_TEXT
         return tag.find(class_=(self.container + search_text)).find('a').text.replace(u'\xa0', u' ')
 
     def process_split_name(self, tag: BeautifulSoup_Tag, search_text: Optional[str] = None) -> (str, str):
-        """Return the estimated first and last names from the first employee name found in tag"""
+        """Return the estimated first and last names from the first brightspot_employee name found in tag"""
         full_name = self.process_full_name(tag, search_text)
         return util.split_name(full_name, self.NAME_SUFFIXES)
 
@@ -134,11 +134,11 @@ E = TypeVar('E', bound='Employee')
 
 class Employee:
     """
-    Store data for a BrightSpot employee.
+    Store data for a BrightSpot brightspot_employee.
     Employee.processor must be set depending on the website being scraped from
 
     Class Attributes:
-    processor - class used for processing all employee fields
+    processor - class used for processing all brightspot_employee fields
     """
 
     processor = EmployeeProcessor('')
@@ -194,7 +194,7 @@ class Employee:
         """
         Create an Employee using a BeautifulSoup tag object.
 
-        :param tag: : BeautifulSoup_Tag containing exactly one employee's data
+        :param tag: : BeautifulSoup_Tag containing exactly one brightspot_employee's data
         :return: Employee instance
         """
         first_name, last_name = cls.processor.process_split_name(tag)
@@ -274,7 +274,7 @@ class Employee:
     def download_all_photos(professors: Iterable['Employee'], dir_path: PathLike,
                             thread_limit: int = 5) -> None:
         """
-        Download each employee's photo and save it in dir_path using the default naming
+        Download each brightspot_employee's photo and save it in dir_path using the default naming
         Uses multithreading
         Default naming uses Employee.full_name and the original file extension
 

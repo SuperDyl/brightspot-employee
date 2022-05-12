@@ -1,5 +1,5 @@
 """
-Random utility functions used by the employee package
+Random utility functions used by the brightspot_employee package
 
 Constants:
 NAME_SUFFIXES - default name suffixes to ignore while splitting a name
