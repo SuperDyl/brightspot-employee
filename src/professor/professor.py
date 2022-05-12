@@ -3,7 +3,7 @@ Processes and stores data about Professors in BYU's Religious Education
 
 Classes:
 Professor - Store data for a professor in BYU's Religious Education.
-ProfessorProcessor - Functions used to get BrightSpot employee data.
+ProfessorProcessor - Functions used to get BrightSpot professor data.
 
 Constants:
 RELIGION_DIR_URL - url for Religious Education at BYU
@@ -41,7 +41,7 @@ class ProfessorProcessor(EmployeeProcessor):
 
 class Professor(Employee):
     """
-    Store data for a professor in BYU's Religious Education.
+    Convenience improvements to Employee to better pull and store information for BYU's Religious Education.
 
     Class Attributes:
     processor - class used for processing all professor fields

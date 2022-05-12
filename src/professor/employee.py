@@ -1,5 +1,5 @@
 """
-Processes and stores data about Employees on BrightSpot pages
+Processes and stores data about Employees on BrightSpot pages.
 
 Classes:
 Employee - Store data for an employee.
@@ -136,6 +136,7 @@ E = TypeVar('E', bound='Employee')
 class Employee:
     """
     Store data for a BrightSpot employee.
+    Employee.processor must be set depending on the website being scraped from
 
     Class Attributes:
     processor - class used for processing all professor fields
@@ -159,7 +160,7 @@ class Employee:
     def __repr__(self) -> str:
         return str(self)
 
-    def download_photo(self, dir_path: path, file_name: Optional[str] = None) -> None:
+    def download_photo(self, dir_path: Union[PathLike, str], file_name: Optional[str] = None) -> None:
         """
         Download full-resolution photo from page_url.
 
@@ -229,7 +230,7 @@ class Employee:
                    kwargs.job_title)
 
     @staticmethod
-    def to_csv(file_path: Union[PathLike, str], employees: Iterable['Employee']) -> None:
+    def to_csv(file_path: Union[PathLike, str], employees: Iterable[Type[E]]) -> None:
         """
         Create a comma-seperated-values file at file_path.
 
