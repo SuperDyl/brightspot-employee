@@ -58,40 +58,42 @@ class EmployeeProcessor:
 
     NAME_SUFFIXES = util.NAME_SUFFIXES[:]
     NON_EXISTENT = ''
+    NAME_SEARCH_TEXT = '-title promo-title'
 
-    def __init__(self, container: str):
+    def __init__(self, container: str, super_container: Optional[str] = None):
+        if super_container is None:
+            super_container = container
         self.container = container
+        self.super_container = super_container
 
-    def process_job_title(self, tag: BeautifulSoup_Tag) -> str:
+    def process_job_title(self, tag: BeautifulSoup_Tag, search_text: str = '-jobTitle') -> str:
         """Return the first job title found in tag."""
-        job_title = tag.find(class_=(self.container + '-jobTitle'))
+        job_title = tag.find(class_=(self.container + search_text))
         if job_title is None:
             return self.NON_EXISTENT
         return job_title.text
 
-    def process_department(self, tag: BeautifulSoup_Tag) -> str:
+    def process_department(self, tag: BeautifulSoup_Tag, search_text: str = '-groups') -> str:
         """Return the first department found in tag."""
-        department = tag.find(class_=(self.container + '-groups'))
+        department = tag.find(class_=(self.container + search_text))
         if department is None:
             return self.NON_EXISTENT
         return department.text
 
-    def process_telephone(self, tag: BeautifulSoup_Tag) -> str:
+    def process_telephone(self, tag: BeautifulSoup_Tag, search_text: str = '-phoneNumber') -> str:
         """Return the first telephone number found in tag."""
-        telephone_tag = tag.find(class_=(self.container + '-phoneNumber'))
+        telephone_tag = tag.find(class_=(self.container + search_text))
         if telephone_tag is None:
             return self.NON_EXISTENT
         phone_ref = telephone_tag.find('a')['href']
         return util.remove_prefix(phone_ref, 'tel:')
 
-    @staticmethod
-    def process_page_url_static(tag: BeautifulSoup_Tag) -> str:
-        """Return the first hyperlinked url found in tag, but static."""
-        return tag.find(class_="Link")['href']
-
-    def process_page_url(self, tag: BeautifulSoup_Tag) -> str:
+    def process_page_url(self, tag: BeautifulSoup_Tag, search_text: str = 'Link') -> str:
         """Return the first hyperlinked url found in tag."""
-        return type(self).process_page_url_static(tag)
+        url = tag.find(class_=search_text)
+        if url is None:
+            return self.NON_EXISTENT
+        return url['href']
 
     @staticmethod
     def process_room_static(tag: BeautifulSoup_Tag) -> Room:
@@ -105,28 +107,25 @@ class EmployeeProcessor:
         """Return the first room number found in tag."""
         return type(self).process_room_static(tag)
 
-    def process_first_name(self, tag: BeautifulSoup_Tag) -> str:
+    def process_first_name(self, tag: BeautifulSoup_Tag, search_text: Optional[str] = None) -> str:
         """Return an estimation of the first name from tag"""
-        first_name, _ = self.process_split_name(tag)
+        first_name, _ = self.process_split_name(tag, search_text)
         return first_name
 
-    def process_last_name(self, tag: BeautifulSoup_Tag) -> str:
+    def process_last_name(self, tag: BeautifulSoup_Tag, search_text: Optional[str] = None) -> str:
         """Return an estimation of the last name from tag"""
-        _, last_name = self.process_split_name(tag)
+        _, last_name = self.process_split_name(tag, search_text)
         return last_name
 
-    @staticmethod
-    def process_full_name_static(tag: BeautifulSoup_Tag) -> str:
-        """Return the first employee name found in tag, but static."""
-        return tag.find('a', attrs={'data-cms-ai': '0'})['aria-label'].replace(u'\xa0', u' ')
-
-    def process_full_name(self, tag: BeautifulSoup_Tag) -> str:
+    def process_full_name(self, tag: BeautifulSoup_Tag, search_text: Optional[str] = NAME_SEARCH_TEXT) -> str:
         """Return the first employee name found in tag."""
-        return type(self).process_full_name_static(tag)
+        if search_text is None:
+            search_text = self.NAME_SEARCH_TEXT
+        return tag.find(class_=(self.container + search_text)).find('a').text.replace(u'\xa0', u' ')
 
-    def process_split_name(self, tag: BeautifulSoup_Tag) -> (str, str):
+    def process_split_name(self, tag: BeautifulSoup_Tag, search_text: Optional[str] = None) -> (str, str):
         """Return the estimated first and last names from the first employee name found in tag"""
-        full_name = self.process_full_name(tag)
+        full_name = self.process_full_name(tag, search_text)
         return util.split_name(full_name, self.NAME_SUFFIXES)
 
 
@@ -265,7 +264,11 @@ class Employee:
         :param url: : webpage to pull all data from
         :return: list of Employee instances from the url's data
         """
-        return [cls.from_html_tag(tag) for tag in util.tag_iterator(url)]
+        output = list()
+        for tag in util.tag_iterator(url, kwargs={'class_': cls.processor.super_container}):
+            with suppress(AttributeError):
+                output.append(cls.from_html_tag(tag))
+        return output
 
     @staticmethod
     def download_all_photos(professors: Iterable['Employee'], dir_path: PathLike,
