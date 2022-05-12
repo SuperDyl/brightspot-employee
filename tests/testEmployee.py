@@ -1,4 +1,4 @@
-from src.professor import Employee, EmployeeProcessor
+from src.employee import Employee, EmployeeProcessor
 
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 import unittest

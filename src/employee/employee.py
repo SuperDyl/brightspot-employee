@@ -139,7 +139,7 @@ class Employee:
     Employee.processor must be set depending on the website being scraped from
 
     Class Attributes:
-    processor - class used for processing all professor fields
+    processor - class used for processing all employee fields
     """
 
     processor = EmployeeProcessor('')
@@ -195,7 +195,7 @@ class Employee:
         """
         Create an Employee using a BeautifulSoup tag object.
 
-        :param tag: : BeautifulSoup_Tag containing exactly one professor's data
+        :param tag: : BeautifulSoup_Tag containing exactly one employee's data
         :return: Employee instance
         """
         first_name, last_name = cls.processor.process_split_name(tag)
@@ -271,7 +271,7 @@ class Employee:
     def download_all_photos(professors: Iterable['Employee'], dir_path: PathLike,
                             thread_limit: int = 5) -> None:
         """
-        Download each professor's photo and save it in dir_path using the default naming
+        Download each employee's photo and save it in dir_path using the default naming
         Uses multithreading
         Default naming uses Employee.full_name and the original file extension
 

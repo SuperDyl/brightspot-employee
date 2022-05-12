@@ -1,5 +1,5 @@
 """
-Random utility functions used by the professor package
+Random utility functions used by the employee package
 
 Constants:
 NAME_SUFFIXES - default name suffixes to ignore while splitting a name
