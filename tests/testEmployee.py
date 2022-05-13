@@ -1,4 +1,4 @@
-from src.employee import Employee, EmployeeProcessor
+from src.brightspot_employee import Employee, EmployeeProcessor
 
 from bs4.element import Tag as BeautifulSoup_Tag
 
